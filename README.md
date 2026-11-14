@@ -29,13 +29,27 @@ The judge used all four labels, so the chance baseline really is about 25%.
 git clone https://github.com/DakshVarshney1409/lydian.git
 cd lydian
 pip install -r requirements.txt
-cp .env.example .env                      # then paste your ANTHROPIC_API_KEY
+cp .env.example .env                      # then add the API key for your provider
 
 python3 verify_ground_truth.py            # establishes labels -> ground_truth.json (no API calls)
 python3 run_experiment.py --runs 3 --both # judges every case, full and stripped
 ```
 
-`verify_ground_truth.py` should report **18/18 cases agree**. `--runs 3 --both` is 108 judge calls, about $1.20 with the default `claude-sonnet-5` judge. Override with `--model` or `LYDIAN_JUDGE_MODEL` / `LYDIAN_JUDGE_EFFORT`.
+`verify_ground_truth.py` should report **18/18 cases agree**. `--runs 3 --both` is 108 judge calls.
+
+### Pick any model provider
+
+The judge isn't tied to one vendor. Two backends cover almost everything:
+
+| Provider | Covers | Example |
+|---|---|---|
+| `anthropic` (default) | Anthropic models | `python3 run_experiment.py --runs 3 --both` |
+| `openai` | OpenAI, and any OpenAI-compatible endpoint: Ollama, vLLM, LM Studio, OpenRouter, Groq, Together, DeepSeek, Mistral, Gemini | `python3 run_experiment.py --provider openai --model <model> --runs 3 --both` |
+| `openai` + local server | Open-weight models on your own machine, no key and no data leaving it | `python3 run_experiment.py --provider openai --base-url http://localhost:11434/v1 --model <model>` |
+
+Set these with flags or in `.env`: `LYDIAN_PROVIDER`, `LYDIAN_JUDGE_MODEL`, `LYDIAN_JUDGE_EFFORT` and `LYDIAN_BASE_URL`. Install only the SDK you use. Adding another provider is one small class in [`providers.py`](providers.py).
+
+The default judge, Anthropic's `claude-sonnet-5`, costs about $1.20 for a full `--runs 3 --both`. How other models compare on accuracy and cost is an open [roadmap](ROADMAP.md) item, and results from any provider are welcome in `results/`.
 
 ## How it works
 
@@ -77,7 +91,7 @@ Four nodes: `intent → retriever → reasoner → responder`. Deterministic, so
 
 ### The judge
 
-`judge.py` holds the prompt. It describes each node's job and the earliest-node rule, and deliberately contains no worked examples or failure taxonomy, because an earlier version leaked the answer key that way. The policy index is rendered as plain metadata with today's date, so the judge has to work out document currency itself.
+`judge.py` holds the prompt, and `providers.py` sends it to whichever model you configure. The prompt describes each node's job and the earliest-node rule, and deliberately contains no worked examples or failure taxonomy, because an earlier version leaked the answer key that way. The policy index is rendered as plain metadata with today's date, so the judge has to work out document currency itself.
 
 ## Files
 
@@ -87,14 +101,15 @@ Four nodes: `intent → retriever → reasoner → responder`. Deterministic, so
 | `agent.py` | The 4-node mock agent with toggleable bugs |
 | `test_cases.py` | 18 cases with correctness assertions |
 | `verify_ground_truth.py` | Single-bug ablation → `ground_truth.json` |
-| `judge.py` | The judge prompt, API call and parsing |
+| `judge.py` | The judge prompt and verdict parsing |
+| `providers.py` | Model providers: Anthropic, and any OpenAI-compatible endpoint |
 | `run_experiment.py` | Scoring → `judge_results.json` |
 | `results/` | Published runs, for comparison |
 | `site/` | The project website ([lydian-eval.netlify.app](https://lydian-eval.netlify.app)) |
 
 ## Contributing
 
-Contributions are welcome: better judging, new agents and domains, trace adapters, and cheaper runs. Start with [ROADMAP.md](ROADMAP.md) and [CONTRIBUTING.md](CONTRIBUTING.md). The one rule: **any change to the judge ships with before-and-after numbers on the stripped variant.**
+Contributions are welcome: better judging, new agents and domains, trace adapters, new model providers, and cheaper runs. Start with [ROADMAP.md](ROADMAP.md) and [CONTRIBUTING.md](CONTRIBUTING.md). The one rule: **any change to the judge ships with before-and-after numbers on the stripped variant.**
 
 ## License
 

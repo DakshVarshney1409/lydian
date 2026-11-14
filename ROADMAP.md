@@ -30,11 +30,12 @@ T08 (stripped) and T12 (full) gave different answers across runs. Try self-consi
 
 A full `--runs 3 --both` is 108 calls at about $0.011 each with the default judge. A production judge runs on every trace, so cost per trace is a product metric.
 
-- **Prompt caching.** The system prompt and policy index are the same for every case, but the index currently sits in the user message. Move the static prefix first and cache it.
+- **Prompt caching.** The system prompt and policy index are the same for every case, but the index currently sits in the user message. Move the static prefix first so providers that cache prefixes can reuse it.
 - **Two-tier judging.** Detect with a small, cheap model and localize with a larger one only on flagged traces. Report the accuracy and cost trade-off.
-- **Batch API.** Offline evaluation doesn't need real-time answers; batch runs cost about half.
+- **Batch APIs.** Offline evaluation doesn't need real-time answers, and the providers that offer batch processing charge about half.
 - **Structured outputs.** Replace free-text JSON parsing and retries with schema-constrained output.
-- **Model × effort sweep.** A table of localization against cost per trace for the current Haiku, Sonnet, Opus and Fable models at each effort level, so users can pick a point on the curve.
+- **Model × provider sweep.** A table of localization against cost per trace across providers, model sizes and effort levels, so users can pick a point on the curve.
+- **Open-weight judge.** How close does a model running locally get to the hosted ones? A strong local judge means traces never leave the user's machine.
 
 **Done when:** each item lands with a cost-per-trace and localization number next to the baseline.
 

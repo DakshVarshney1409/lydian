@@ -23,25 +23,20 @@ WHAT CHANGED AFTER THE FIRST VERIFICATION PASS
   work out currency itself instead of being handed it.
 
 SAMPLING
-  Current models (Fable 5.x, Opus 5, Sonnet 5) reject temperature/top_p, so
-  there is nothing to pin. Run-to-run variation is real variation, which is
-  exactly what --runs is measuring.
+  No temperature or seed is pinned: many current models reject them, and
+  run-to-run variation is real variation, which is exactly what --runs measures.
+
+PROVIDERS
+  The judge is model-agnostic. It talks to whatever providers.py is configured
+  for (Anthropic, OpenAI, or any OpenAI-compatible endpoint, local or hosted).
 """
 
 import json
-import os
 
-from anthropic import Anthropic
-
+import providers
 from corpus import TODAY
 
-MODEL = os.environ.get("LYDIAN_JUDGE_MODEL", "claude-sonnet-5")
-EFFORT = os.environ.get("LYDIAN_JUDGE_EFFORT", "high")
 NODES = ["intent", "retriever", "reasoner", "responder"]
-
-# Models that take the server-side refusal fallback parameter.
-_FALLBACK_OK = ("claude-fable-5", "claude-fable-5-1", "claude-mythos-5",
-                "claude-mythos-5-1", "claude-opus-5")
 
 SYSTEM = """You review traces from an insurance claims assistant and find the ROOT CAUSE of failures.
 
@@ -135,49 +130,45 @@ def build_prompt(query, trace, final_answer, corpus, strip_detail=False):
             f"Which node, if any, is the root cause?")
 
 
-def _request(client, prompt):
-    kwargs = dict(
-        model=MODEL,
-        max_tokens=8000,          # thinking is always on for current models
-        system=SYSTEM,
-        output_config={"effort": EFFORT},
-        messages=[{"role": "user", "content": prompt}],
-    )
-    if MODEL.startswith(_FALLBACK_OK):
-        # Server-side refusal fallback: on a policy decline the same request is
-        # re-run on a fallback model inside the same call, so one refusal does
-        # not punch a hole in the run.
-        return client.beta.messages.create(
-            betas=["server-side-fallback-2026-07-01"], fallbacks="default", **kwargs)
-    return client.messages.create(**kwargs)
+def _parse(raw):
+    """Pull the verdict object out of a reply. Models differ in how strictly they
+    follow "JSON only": some add a fence, some a sentence before or after."""
+    raw = raw.replace("```json", "").replace("```", "").strip()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+    start, end = raw.find("{"), raw.rfind("}")
+    if start != -1 and end > start:
+        return json.loads(raw[start:end + 1])
+    raise json.JSONDecodeError("no JSON object found", raw, 0)
 
 
-def judge_one(query, trace, final_answer, corpus, client=None, strip_detail=False,
+def judge_one(query, trace, final_answer, corpus, provider=None, strip_detail=False,
               attempts=2):
     """Judge one trace. A malformed response is re-asked rather than discarded -
     a dropped judgment silently deflates detection, which is the metric it is
     most likely to distort."""
-    client = client or Anthropic()
+    provider = provider or providers.make(providers.resolve())
     prompt = build_prompt(query, trace, final_answer, corpus, strip_detail)
     last = None
 
     for attempt in range(attempts):
         try:
-            msg = _request(client, prompt)
+            raw, refused = provider.complete(SYSTEM, prompt)
         except Exception as e:                  # noqa: BLE001 - reported, not raised
             last = {"failed": None, "node": None, "reason": f"api_error: {e}",
                     "fix": None, "parse_error": True}
             continue
 
-        if getattr(msg, "stop_reason", None) == "refusal":
+        if refused:
             return {"failed": None, "node": None, "reason": "refused", "fix": None,
                     "parse_error": True}
 
-        raw = "".join(b.text for b in msg.content if b.type == "text").strip()
-        raw = raw.replace("```json", "").replace("```", "").strip()
-
         try:
-            out = json.loads(raw)
+            out = _parse(raw)
+            if not isinstance(out, dict):
+                raise json.JSONDecodeError("not an object", raw, 0)
         except json.JSONDecodeError:
             last = {"failed": None, "node": None, "reason": f"unparseable: {raw[:120]}",
                     "fix": None, "parse_error": True}

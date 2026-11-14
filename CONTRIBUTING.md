@@ -6,7 +6,7 @@ Thanks for helping. The project is small, so the process is too.
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env          # add your ANTHROPIC_API_KEY
+cp .env.example .env          # pick a provider and add its key (see README)
 python3 verify_ground_truth.py
 ```
 
@@ -22,7 +22,7 @@ python3 run_experiment.py --runs 3 --both --out results/<your-branch>.json
 
 Then paste the printed detection, localization, false-alarm and label-spread lines, before and after. **The stripped variant is the number that counts.** A change that raises full-trace localization but not stripped is reading the notes, not the trace.
 
-Also say which model and effort you ran. They are recorded under `meta` in the results file.
+Also say which provider, model and effort you ran. They are recorded under `meta` in the results file. Use any provider you like. Before-and-after numbers just need to come from the same one.
 
 ## Keeping the benchmark honest
 
@@ -41,10 +41,14 @@ The benchmark has already been fooled once. These are the ways it happened, so d
 3. Run `verify_ground_truth.py` and fix anything it flags as overdetermined or broken.
 4. Run the judge and report the numbers.
 
+## Adding a model provider
+
+Write a class in `providers.py` with a `name` and a `complete(system, prompt)` method that returns `(text, refused)`, then add it to `PROVIDERS`. Import its SDK inside `__init__` so nobody has to install it unless they use it. Check whether the OpenAI-compatible backend with `--base-url` already covers the provider before adding a new one.
+
 ## Pull requests
 
 - One idea per PR. Link the roadmap item or issue.
-- Keep dependencies minimal. The engine is plain Python plus the Anthropic SDK.
+- Keep dependencies minimal. The engine is plain Python plus the SDK of whichever provider you use. Don't make any one provider mandatory.
 - Never commit `.env`, keys or real customer traces. Anonymize real traces before they go anywhere near the repo.
 
 ## Questions

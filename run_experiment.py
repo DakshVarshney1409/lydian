@@ -1,9 +1,14 @@
 """
 Score the judge against the verified ground truth.
 
-Run verify_ground_truth.py first. Requires ANTHROPIC_API_KEY.
-Results are written to judge_results.json (or --out), with the judge model,
+Run verify_ground_truth.py first. Needs an API key for the judge's provider
+(see providers.py), or a local OpenAI-compatible server.
+Results are written to judge_results.json (or --out), with the provider, model,
 effort and date recorded under "meta" so every number can be reproduced.
+
+    python3 run_experiment.py --provider openai --model <model> --runs 3 --both
+    python3 run_experiment.py --provider openai --base-url http://localhost:11434/v1 \
+        --model <local-model> --runs 3 --both
 
     python3 run_experiment.py --runs 3              # full trace
     python3 run_experiment.py --runs 3 --strip-detail   # harder variant
@@ -27,8 +32,6 @@ from collections import Counter, defaultdict
 from datetime import date
 from concurrent.futures import ThreadPoolExecutor
 
-from anthropic import Anthropic
-
 
 def load_local_env(path=".env"):
     """Read KEY=value lines from a local .env so the API key never has to live
@@ -44,18 +47,18 @@ def load_local_env(path=".env"):
             k, v = line.split("=", 1)
             os.environ.setdefault(k.strip(), v.strip().strip("'\""))
 
-import judge as J
+import providers
 from corpus import CORPUS
 from judge import judge_one
 
 NODES = ["intent", "retriever", "reasoner", "responder"]
 
 
-def run_variant(cases, client, runs, strip_detail, workers):
+def run_variant(cases, provider, runs, strip_detail, workers):
     jobs = [(r, c) for r in range(runs) for c in cases]
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = {ex.submit(judge_one, c["query"], c["trace"], c["buggy_answer"],
-                          CORPUS, client, strip_detail): (r, c["id"])
+                          CORPUS, provider, strip_detail): (r, c["id"])
                 for r, c in jobs}
         done = {futs[f]: f.result() for f in futs}
     results = defaultdict(list)
@@ -65,9 +68,10 @@ def run_variant(cases, client, runs, strip_detail, workers):
     return results
 
 
-def report(label, cases, results, runs):
+def report(label, cases, results, runs, cfg):
     print("\n" + "=" * 68)
-    print(f"  VARIANT: {label}    model={J.MODEL}  effort={J.EFFORT}  runs={runs}")
+    print(f"  VARIANT: {label}    {cfg['provider']}:{cfg['model']}  "
+          f"effort={cfg['effort']}  runs={runs}")
     print("=" * 68)
 
     real = [c for c in cases if c["actual"] is not None]
@@ -142,28 +146,18 @@ def main():
     ap.add_argument("--both", action="store_true",
                     help="run full and stripped, then print the delta")
     ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--provider", choices=sorted(providers.PROVIDERS),
+                    help="judge provider (default: LYDIAN_PROVIDER or anthropic)")
     ap.add_argument("--model", help="override LYDIAN_JUDGE_MODEL")
+    ap.add_argument("--effort", help="override LYDIAN_JUDGE_EFFORT")
+    ap.add_argument("--base-url", help="OpenAI-compatible endpoint, e.g. a local server")
     ap.add_argument("--out", default="judge_results.json",
                     help="where to write the raw judgments (default: judge_results.json)")
     args = ap.parse_args()
 
     load_local_env()
-    if args.model:
-        J.MODEL = args.model
-    elif os.environ.get("LYDIAN_JUDGE_MODEL"):
-        J.MODEL = os.environ["LYDIAN_JUDGE_MODEL"]
-    key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not key:
-        raise SystemExit(
-            "No ANTHROPIC_API_KEY found.\n"
-            "Put it in the .env file next to this script:\n"
-            "    ANTHROPIC_API_KEY=sk-ant-...\n"
-            "or export it in your shell profile.")
-    if "REPLACE_ME" in key or not key.startswith("sk-ant-"):
-        raise SystemExit(
-            "ANTHROPIC_API_KEY is still the placeholder from .env.\n"
-            "Open .env and paste your real key from console.anthropic.com.\n"
-            "(.env is hidden - use `ls -a`, or Cmd+Shift+. in Finder.)")
+    cfg = providers.resolve(args.provider, args.model, args.effort, args.base_url)
+    providers.check_credentials(cfg)
 
     with open("ground_truth.json") as f:
         cases = json.load(f)
@@ -171,15 +165,16 @@ def main():
     variants = ["full", "stripped"] if args.both else \
                (["stripped"] if args.strip_detail else ["full"])
 
-    client = Anthropic()
+    provider = providers.make(cfg)
     summary, store = {}, {}
     for v in variants:
         print(f"\njudging {len(cases)} cases x {args.runs} run(s), variant={v} ...")
-        res = run_variant(cases, client, args.runs, v == "stripped", args.workers)
-        summary[v] = report(v, cases, res, args.runs)
+        res = run_variant(cases, provider, args.runs, v == "stripped", args.workers)
+        summary[v] = report(v, cases, res, args.runs, cfg)
         store[v] = {cid: vs for cid, vs in res.items()}
 
-    store["meta"] = dict(model=J.MODEL, effort=J.EFFORT, runs=args.runs,
+    store["meta"] = dict(provider=cfg["provider"], model=cfg["model"],
+                         effort=cfg["effort"], base_url=cfg["base_url"], runs=args.runs,
                          date=date.today().isoformat(), summary=summary)
     with open(args.out, "w") as f:
         json.dump(store, f, indent=2)
