@@ -1,0 +1,22 @@
+name: Judge result
+description: Share benchmark numbers from a provider or model not yet in results/
+labels: [results]
+body:
+  - type: input
+    id: judge
+    attributes:
+      label: Provider, model and effort
+    validations:
+      required: true
+  - type: textarea
+    id: numbers
+    attributes:
+      label: Numbers
+      description: Paste the DETECTION / LOCALIZATION / FALSE ALARM / label spread lines for both variants, from `run_experiment.py --runs 3 --both`.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: cost
+    attributes:
+      label: Approximate cost or runtime

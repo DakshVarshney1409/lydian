@@ -10,7 +10,7 @@ cp .env.example .env          # pick a provider and add its key (see README)
 python3 verify_ground_truth.py
 ```
 
-`verify_ground_truth.py` makes no API calls. It must still print **18/18 cases agree** after your change.
+`verify_ground_truth.py` makes no API calls. It must still print **18/18 cases agree** after your change, and `python3 -m unittest discover tests` must pass. CI runs both on every pull request.
 
 ## The one rule: numbers with every judge change
 

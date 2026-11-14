@@ -1,0 +1,25 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  offline:
+    # No API key and no network calls: these run on every PR, including forks.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Ground truth still holds
+        run: python verify_ground_truth.py
+      - name: Committed ground_truth.json matches the code
+        run: git diff --exit-code ground_truth.json
+      - name: Offline tests
+        run: python -m unittest discover tests -v

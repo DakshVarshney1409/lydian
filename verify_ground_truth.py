@@ -125,6 +125,9 @@ def main():
         json.dump(rows, f, indent=2)
     print("\nWrote ground_truth.json")
 
+    # Non-zero exit so CI fails on a mismatched label or a broken test case.
+    return 1 if (mismatches or broken) else 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

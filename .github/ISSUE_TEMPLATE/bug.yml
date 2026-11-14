@@ -1,0 +1,22 @@
+name: Bug
+description: Something in the engine or benchmark is wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you ran, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: input
+    id: judge
+    attributes:
+      label: Provider and model
+      placeholder: "e.g. openai: gpt-x, or anthropic: claude-sonnet-5"
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: The relevant lines from run_experiment.py or verify_ground_truth.py.
+      render: text

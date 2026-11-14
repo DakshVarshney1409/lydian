@@ -1,5 +1,7 @@
 # Lydian
 
+[![checks](https://github.com/DakshVarshney1409/lydian/actions/workflows/checks.yml/badge.svg)](https://github.com/DakshVarshney1409/lydian/actions/workflows/checks.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Root-cause evaluation for AI agents.** Your evals tell you the answer was wrong. Lydian reads the trace and tells you *which node* caused it, so you go straight to the component that needs changing instead of reading transcripts.
 
 > **Status: early, open source, actively developed.** What works today is the core engine and the benchmark that tests it. Everything else on the [roadmap](ROADMAP.md) is open for contributions. Site: [lydian-eval.netlify.app](https://lydian-eval.netlify.app)
@@ -105,6 +107,7 @@ Four nodes: `intent → retriever → reasoner → responder`. Deterministic, so
 | `providers.py` | Model providers: Anthropic, and any OpenAI-compatible endpoint |
 | `run_experiment.py` | Scoring → `judge_results.json` |
 | `results/` | Published runs, for comparison |
+| `tests/` | Offline tests: no API key or network needed |
 | `site/` | The project website ([lydian-eval.netlify.app](https://lydian-eval.netlify.app)) |
 
 ## Contributing

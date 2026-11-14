@@ -1,0 +1,4 @@
+# Netlify: connect this repo and the site deploys from site/ on every push.
+[build]
+  publish = "site"
+  command = ""

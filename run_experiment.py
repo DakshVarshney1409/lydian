@@ -90,7 +90,8 @@ def report(label, cases, results, runs, cfg):
         print(f"               {loc}/{det} ({loc / det:.0%}) of FLAGGED failures localized")
     print(f"  FALSE ALARM  {fa}/{n_ctrl} ({fa / n_ctrl:.0%}) of passing controls flagged")
     if errs:
-        print(f"  UNUSABLE     {errs} response(s) failed to parse or errored")
+        print(f"  UNUSABLE     {errs} response(s) failed to parse or errored. "
+              f"They count as unflagged, so every number above is understated.")
 
     print("\n  Per-node localization:")
     for node in NODES:
@@ -118,7 +119,8 @@ def report(label, cases, results, runs, cfg):
             stable = len(set(vs)) == 1
             if not stable:
                 unstable.append(c["id"])
-            corr = sum(1 for v in results[c["id"]] if v["node"] == c["actual"])
+            corr = sum(1 for v in results[c["id"]]
+                       if not v["parse_error"] and v["node"] == c["actual"])
             print(f"    {c['id']:<5} truth={str(c['actual']):<10} "
                   f"{','.join(vs):<34} {'stable' if stable else 'UNSTABLE':<9} "
                   f"{corr}/{runs} correct")
@@ -135,7 +137,8 @@ def report(label, cases, results, runs, cfg):
         print("    (none)")
 
     return dict(detection=det / n_real, localization=loc / n_real,
-                false_alarm=fa / n_ctrl, labels_used=len(used))
+                false_alarm=fa / n_ctrl, labels_used=len(used),
+                unusable=errs / (len(cases) * runs))
 
 
 def main():
@@ -166,6 +169,16 @@ def main():
                (["stripped"] if args.strip_detail else ["full"])
 
     provider = providers.make(cfg)
+
+    # One call before the full run, so a bad key, an unknown model or a model
+    # that cannot produce the verdict format fails in seconds, not 108 calls.
+    print(f"checking {cfg['provider']}:{cfg['model']} with one call ...")
+    probe = judge_one(cases[0]["query"], cases[0]["trace"], cases[0]["buggy_answer"],
+                      CORPUS, provider, attempts=1)
+    if probe["parse_error"]:
+        raise SystemExit(f"The judge's first call failed, so the run was not started:\n"
+                         f"  {probe['reason'][:400]}")
+
     summary, store = {}, {}
     for v in variants:
         print(f"\njudging {len(cases)} cases x {args.runs} run(s), variant={v} ...")
@@ -188,6 +201,16 @@ def main():
         for m in ("detection", "localization", "false_alarm"):
             f_, s_ = summary["full"][m], summary["stripped"][m]
             print(f"  {m:<14}{f_:>9.0%}{s_:>12.0%}{s_ - f_:>+10.0%}")
+
+    bad = {v: s["unusable"] for v, s in summary.items() if s["unusable"] > 0.10}
+    if bad:
+        print("\n" + "!" * 68)
+        for v, rate in bad.items():
+            print(f"  {v}: {rate:.0%} of responses were unusable.")
+        print(f"  These results are not valid. Fix the cause before using or")
+        print(f"  publishing {args.out}.")
+        print("!" * 68)
+        raise SystemExit(1)
 
     print("\n" + "-" * 68)
     print("  READING THIS: if localization is near the EFFECTIVE chance baseline")

@@ -1,0 +1,15 @@
+name: Idea
+description: A failure Lydian should catch, or a way to catch failures better
+labels: [idea]
+body:
+  - type: textarea
+    id: failure
+    attributes:
+      label: The failure it would catch
+      description: A concrete example beats a general description.
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: How you'd approach it
