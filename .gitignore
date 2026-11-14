@@ -1,0 +1,7 @@
+.env
+*.db
+judge_results.json
+.DS_Store
+__pycache__/
+*.pyc
+site/.netlify/

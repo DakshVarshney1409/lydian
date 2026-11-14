@@ -1,0 +1,808 @@
+[
+  {
+    "id": "T01",
+    "query": "I don't want to file a claim yet, I just want to know if flood is covered",
+    "declared": "intent",
+    "actual": "intent",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "A",
+    "repairing_bugs": "A",
+    "minimal_sets": null,
+    "buggy_answer": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "new_claim",
+        "topics": [
+          "filing"
+        ],
+        "detail": "intent=new_claim; negation_detected=True; retrieve_topics=['filing']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "top_k=1; topics=['filing']; ranked=['POL-CLAIM-FILE']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "confidence": "high",
+        "cited": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "conditions omitted from ['POL-CLAIM-FILE']"
+      },
+      {
+        "node": "responder",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "hedged": false,
+        "detail": "confidence=high; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T02",
+    "query": "Before I file anything, is mold damage covered under my policy?",
+    "declared": "intent",
+    "actual": "intent",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "A",
+    "repairing_bugs": "A",
+    "minimal_sets": null,
+    "buggy_answer": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "new_claim",
+        "topics": [
+          "filing"
+        ],
+        "detail": "intent=new_claim; negation_detected=True; retrieve_topics=['filing']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "top_k=1; topics=['filing']; ranked=['POL-CLAIM-FILE']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "confidence": "low",
+        "cited": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "conditions omitted from ['POL-CLAIM-FILE']; weak support (overlap=1)"
+      },
+      {
+        "node": "responder",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T03",
+    "query": "Not ready to file a claim - what is my deductible for water damage?",
+    "declared": "intent",
+    "actual": "intent",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "AB",
+    "repairing_bugs": null,
+    "minimal_sets": null,
+    "buggy_answer": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "new_claim",
+        "topics": [
+          "filing"
+        ],
+        "detail": "intent=new_claim; negation_detected=True; retrieve_topics=['filing']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "top_k=1; topics=['filing']; ranked=['POL-CLAIM-FILE']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "confidence": "high",
+        "cited": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "conditions omitted from ['POL-CLAIM-FILE']"
+      },
+      {
+        "node": "responder",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "hedged": false,
+        "detail": "confidence=high; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T04",
+    "query": "What is my deductible amount for water damage?",
+    "declared": "retriever",
+    "actual": "retriever",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "B",
+    "repairing_bugs": "B",
+    "minimal_sets": null,
+    "buggy_answer": "Standard deductible for water damage claims is $500. Standard deductible for wind and hail is $750. Deductibles are applied per incident, not per policy year.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [
+          "deductible"
+        ],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=['deductible']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-DED-v2"
+        ],
+        "detail": "top_k=1; topics=['deductible']; ranked=['POL-DED-v2', 'POL-DED-v3']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Standard deductible for water damage claims is $500. Standard deductible for wind and hail is $750. Deductibles are applied per incident, not per policy year.",
+        "confidence": "low",
+        "cited": [
+          "POL-DED-v2"
+        ],
+        "detail": "relied on out-of-date docs ['POL-DED-v2']"
+      },
+      {
+        "node": "responder",
+        "output": "Standard deductible for water damage claims is $500. Standard deductible for wind and hail is $750. Deductibles are applied per incident, not per policy year.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T05",
+    "query": "How much do I pay out of pocket for wind and hail damage?",
+    "declared": "retriever",
+    "actual": "retriever",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "B",
+    "repairing_bugs": "B",
+    "minimal_sets": null,
+    "buggy_answer": "Standard deductible for water damage claims is $500. Standard deductible for wind and hail is $750. Deductibles are applied per incident, not per policy year.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [
+          "deductible"
+        ],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=['deductible']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-DED-v2"
+        ],
+        "detail": "top_k=1; topics=['deductible']; ranked=['POL-DED-v2', 'POL-DED-v3']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Standard deductible for water damage claims is $500. Standard deductible for wind and hail is $750. Deductibles are applied per incident, not per policy year.",
+        "confidence": "low",
+        "cited": [
+          "POL-DED-v2"
+        ],
+        "detail": "relied on out-of-date docs ['POL-DED-v2']"
+      },
+      {
+        "node": "responder",
+        "output": "Standard deductible for water damage claims is $500. Standard deductible for wind and hail is $750. Deductibles are applied per incident, not per policy year.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T06",
+    "query": "Is mold damage excluded from my policy?",
+    "declared": "retriever",
+    "actual": "retriever",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "B",
+    "repairing_bugs": "B",
+    "minimal_sets": null,
+    "buggy_answer": "Claims arising from tenant occupancy are excluded unless a landlord endorsement is attached. Mold damage is excluded in all circumstances.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [
+          "exclusion"
+        ],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=['exclusion']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-EXCL-2019"
+        ],
+        "detail": "top_k=1; topics=['exclusion']; ranked=['POL-EXCL-2019', 'POL-EXCL-2024']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Claims arising from tenant occupancy are excluded unless a landlord endorsement is attached. Mold damage is excluded in all circumstances.",
+        "confidence": "low",
+        "cited": [
+          "POL-EXCL-2019"
+        ],
+        "detail": "relied on out-of-date docs ['POL-EXCL-2019']"
+      },
+      {
+        "node": "responder",
+        "output": "Claims arising from tenant occupancy are excluded unless a landlord endorsement is attached. Mold damage is excluded in all circumstances.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T07",
+    "query": "Is tenant occupancy excluded without a landlord endorsement?",
+    "declared": "retriever",
+    "actual": "retriever",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "B",
+    "repairing_bugs": "B",
+    "minimal_sets": null,
+    "buggy_answer": "Claims arising from tenant occupancy are excluded unless a landlord endorsement is attached. Mold damage is excluded in all circumstances.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [
+          "exclusion"
+        ],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=['exclusion']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-EXCL-2019"
+        ],
+        "detail": "top_k=1; topics=['exclusion']; ranked=['POL-EXCL-2019', 'POL-EXCL-2024']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Claims arising from tenant occupancy are excluded unless a landlord endorsement is attached. Mold damage is excluded in all circumstances.",
+        "confidence": "low",
+        "cited": [
+          "POL-EXCL-2019"
+        ],
+        "detail": "relied on out-of-date docs ['POL-EXCL-2019']"
+      },
+      {
+        "node": "responder",
+        "output": "Claims arising from tenant occupancy are excluded unless a landlord endorsement is attached. Mold damage is excluded in all circumstances.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T08",
+    "query": "Is flood covered, and what would the deductible be?",
+    "declared": "retriever",
+    "actual": "retriever",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "BC",
+    "repairing_bugs": null,
+    "minimal_sets": null,
+    "buggy_answer": "Damage caused by flood, surface water, or storm surge is EXCLUDED from the standard homeowners policy.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [
+          "deductible",
+          "flood"
+        ],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=['deductible', 'flood']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-FLOOD-001"
+        ],
+        "detail": "top_k=1; topics=['deductible', 'flood']; ranked=['POL-FLOOD-001', 'POL-DED-v2', 'POL-DED-v3']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Damage caused by flood, surface water, or storm surge is EXCLUDED from the standard homeowners policy.",
+        "confidence": "low",
+        "cited": [
+          "POL-FLOOD-001"
+        ],
+        "detail": "conditions omitted from ['POL-FLOOD-001']; no document covering ['deductible']"
+      },
+      {
+        "node": "responder",
+        "output": "Damage caused by flood, surface water, or storm surge is EXCLUDED from the standard homeowners policy.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T09",
+    "query": "What is the deductible and how do I file a claim for it?",
+    "declared": "retriever",
+    "actual": "retriever",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "BC",
+    "repairing_bugs": null,
+    "minimal_sets": null,
+    "buggy_answer": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [
+          "deductible",
+          "filing"
+        ],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=['deductible', 'filing']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "top_k=1; topics=['deductible', 'filing']; ranked=['POL-CLAIM-FILE', 'POL-DED-v2', 'POL-DED-v3']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "confidence": "low",
+        "cited": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "conditions omitted from ['POL-CLAIM-FILE']; no document covering ['deductible']"
+      },
+      {
+        "node": "responder",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T10",
+    "query": "How do I file a claim?",
+    "declared": "reasoner",
+    "actual": "reasoner",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "D",
+    "repairing_bugs": "D",
+    "minimal_sets": null,
+    "buggy_answer": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "new_claim",
+        "topics": [
+          "filing"
+        ],
+        "detail": "intent=new_claim; negation_detected=False; retrieve_topics=['filing']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "top_k=1; topics=['filing']; ranked=['POL-CLAIM-FILE']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "confidence": "high",
+        "cited": [
+          "POL-CLAIM-FILE"
+        ],
+        "detail": "conditions omitted from ['POL-CLAIM-FILE']"
+      },
+      {
+        "node": "responder",
+        "output": "Claims must be reported within 30 days of the date of loss. You will need your policy number, date of loss, and photographs of the damage. A claims adjuster is assigned within 3 business days.",
+        "hedged": false,
+        "detail": "confidence=high; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T11",
+    "query": "What happens if I appeal a denied claim after the deadline?",
+    "declared": "reasoner",
+    "actual": "reasoner",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "D",
+    "repairing_bugs": "D",
+    "minimal_sets": null,
+    "buggy_answer": "A denied claim may be appealed within 60 days of the denial letter. Appeals require a written statement and any supporting documentation. Appeals are reviewed by a different adjuster than the original decision.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "appeal",
+        "topics": [
+          "appeal"
+        ],
+        "detail": "intent=appeal; negation_detected=False; retrieve_topics=['appeal']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-APPEAL"
+        ],
+        "detail": "top_k=1; topics=['appeal']; ranked=['POL-APPEAL']"
+      },
+      {
+        "node": "reasoner",
+        "output": "A denied claim may be appealed within 60 days of the denial letter. Appeals require a written statement and any supporting documentation. Appeals are reviewed by a different adjuster than the original decision.",
+        "confidence": "high",
+        "cited": [
+          "POL-APPEAL"
+        ],
+        "detail": "conditions omitted from ['POL-APPEAL']"
+      },
+      {
+        "node": "responder",
+        "output": "A denied claim may be appealed within 60 days of the denial letter. Appeals require a written statement and any supporting documentation. Appeals are reviewed by a different adjuster than the original decision.",
+        "hedged": false,
+        "detail": "confidence=high; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T12",
+    "query": "Is flood damage to my detached garage treated differently?",
+    "declared": "responder",
+    "actual": "responder",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "E",
+    "repairing_bugs": "E",
+    "minimal_sets": null,
+    "buggy_answer": "Damage caused by flood, surface water, or storm surge is EXCLUDED from the standard homeowners policy.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [
+          "flood"
+        ],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=['flood']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-FLOOD-001"
+        ],
+        "detail": "top_k=1; topics=['flood']; ranked=['POL-FLOOD-001']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Damage caused by flood, surface water, or storm surge is EXCLUDED from the standard homeowners policy.",
+        "confidence": "low",
+        "cited": [
+          "POL-FLOOD-001"
+        ],
+        "detail": "conditions omitted from ['POL-FLOOD-001']; weak support (overlap=1)"
+      },
+      {
+        "node": "responder",
+        "output": "Damage caused by flood, surface water, or storm surge is EXCLUDED from the standard homeowners policy.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "T13",
+    "query": "If my appeal is rejected a second time, can I go to arbitration?",
+    "declared": "responder",
+    "actual": "responder",
+    "buggy_passes": false,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": "E",
+    "repairing_bugs": "E",
+    "minimal_sets": null,
+    "buggy_answer": "A denied claim may be appealed within 60 days of the denial letter. Appeals require a written statement and any supporting documentation. Appeals are reviewed by a different adjuster than the original decision.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "appeal",
+        "topics": [
+          "appeal"
+        ],
+        "detail": "intent=appeal; negation_detected=False; retrieve_topics=['appeal']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-APPEAL"
+        ],
+        "detail": "top_k=1; topics=['appeal']; ranked=['POL-APPEAL']"
+      },
+      {
+        "node": "reasoner",
+        "output": "A denied claim may be appealed within 60 days of the denial letter. Appeals require a written statement and any supporting documentation. Appeals are reviewed by a different adjuster than the original decision.",
+        "confidence": "low",
+        "cited": [
+          "POL-APPEAL"
+        ],
+        "detail": "conditions omitted from ['POL-APPEAL']; weak support (overlap=1)"
+      },
+      {
+        "node": "responder",
+        "output": "A denied claim may be appealed within 60 days of the denial letter. Appeals require a written statement and any supporting documentation. Appeals are reviewed by a different adjuster than the original decision.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "C01",
+    "query": "What is the deductible schedule for the 2026 plan year?",
+    "declared": null,
+    "actual": null,
+    "buggy_passes": true,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": null,
+    "repairing_bugs": null,
+    "minimal_sets": null,
+    "buggy_answer": "Standard deductible for water damage claims is $1,000. Standard deductible for wind and hail is $1,250. Deductibles are applied per incident, not per policy year.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [
+          "deductible"
+        ],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=['deductible']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-DED-v3"
+        ],
+        "detail": "top_k=1; topics=['deductible']; ranked=['POL-DED-v3', 'POL-DED-v2']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Standard deductible for water damage claims is $1,000. Standard deductible for wind and hail is $1,250. Deductibles are applied per incident, not per policy year.",
+        "confidence": "high",
+        "cited": [
+          "POL-DED-v3"
+        ],
+        "detail": "cited 1 current doc(s), confidence=high"
+      },
+      {
+        "node": "responder",
+        "output": "Standard deductible for water damage claims is $1,000. Standard deductible for wind and hail is $1,250. Deductibles are applied per incident, not per policy year.",
+        "hedged": false,
+        "detail": "confidence=high; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "C02",
+    "query": "How many days do I have to appeal a denial?",
+    "declared": null,
+    "actual": null,
+    "buggy_passes": true,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": null,
+    "repairing_bugs": null,
+    "minimal_sets": null,
+    "buggy_answer": "A denied claim may be appealed within 60 days of the denial letter. Appeals require a written statement and any supporting documentation. Appeals are reviewed by a different adjuster than the original decision.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "appeal",
+        "topics": [
+          "appeal"
+        ],
+        "detail": "intent=appeal; negation_detected=False; retrieve_topics=['appeal']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-APPEAL"
+        ],
+        "detail": "top_k=1; topics=['appeal']; ranked=['POL-APPEAL']"
+      },
+      {
+        "node": "reasoner",
+        "output": "A denied claim may be appealed within 60 days of the denial letter. Appeals require a written statement and any supporting documentation. Appeals are reviewed by a different adjuster than the original decision.",
+        "confidence": "high",
+        "cited": [
+          "POL-APPEAL"
+        ],
+        "detail": "conditions omitted from ['POL-APPEAL']"
+      },
+      {
+        "node": "responder",
+        "output": "A denied claim may be appealed within 60 days of the denial letter. Appeals require a written statement and any supporting documentation. Appeals are reviewed by a different adjuster than the original decision.",
+        "hedged": false,
+        "detail": "confidence=high; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "C03",
+    "query": "Where do I check the status of my claim?",
+    "declared": null,
+    "actual": null,
+    "buggy_passes": true,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": null,
+    "repairing_bugs": null,
+    "minimal_sets": null,
+    "buggy_answer": "Claim status can be checked in the member portal. Statuses are: Received, Under Review, Adjuster Assigned, Approved, Denied, Paid. Payment is issued within 10 business days of approval.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "claim_status",
+        "topics": [
+          "status"
+        ],
+        "detail": "intent=claim_status; negation_detected=False; retrieve_topics=['status']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-STATUS"
+        ],
+        "detail": "top_k=1; topics=['status']; ranked=['POL-STATUS']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Claim status can be checked in the member portal. Statuses are: Received, Under Review, Adjuster Assigned, Approved, Denied, Paid. Payment is issued within 10 business days of approval.",
+        "confidence": "high",
+        "cited": [
+          "POL-STATUS"
+        ],
+        "detail": "cited 1 current doc(s), confidence=high"
+      },
+      {
+        "node": "responder",
+        "output": "Claim status can be checked in the member portal. Statuses are: Received, Under Review, Adjuster Assigned, Approved, Denied, Paid. Payment is issued within 10 business days of approval.",
+        "hedged": false,
+        "detail": "confidence=high; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "C04",
+    "query": "Is tenant occupancy covered under the 2024 plan year?",
+    "declared": null,
+    "actual": null,
+    "buggy_passes": true,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": null,
+    "repairing_bugs": null,
+    "minimal_sets": null,
+    "buggy_answer": "Mold damage is covered when it results directly from a covered water loss. Tenant occupancy is covered under the standard policy as of the 2024 plan year.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [
+          "exclusion"
+        ],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=['exclusion']"
+      },
+      {
+        "node": "retriever",
+        "output": [
+          "POL-EXCL-2024"
+        ],
+        "detail": "top_k=1; topics=['exclusion']; ranked=['POL-EXCL-2024', 'POL-EXCL-2019']"
+      },
+      {
+        "node": "reasoner",
+        "output": "Mold damage is covered when it results directly from a covered water loss. Tenant occupancy is covered under the standard policy as of the 2024 plan year.",
+        "confidence": "high",
+        "cited": [
+          "POL-EXCL-2024"
+        ],
+        "detail": "conditions omitted from ['POL-EXCL-2024']"
+      },
+      {
+        "node": "responder",
+        "output": "Mold damage is covered when it results directly from a covered water loss. Tenant occupancy is covered under the standard policy as of the 2024 plan year.",
+        "hedged": false,
+        "detail": "confidence=high; hedging=off"
+      }
+    ]
+  },
+  {
+    "id": "C05",
+    "query": "Is earthquake shaking part of my plan?",
+    "declared": null,
+    "actual": null,
+    "buggy_passes": true,
+    "clean_passes": true,
+    "match": true,
+    "culprit_bugs": null,
+    "repairing_bugs": null,
+    "minimal_sets": null,
+    "buggy_answer": "I could not find current policy language covering this.",
+    "trace": [
+      {
+        "node": "intent",
+        "output": "coverage_question",
+        "topics": [],
+        "detail": "intent=coverage_question; negation_detected=False; retrieve_topics=[]"
+      },
+      {
+        "node": "retriever",
+        "output": [],
+        "detail": "top_k=1; topics=[]; ranked=[]"
+      },
+      {
+        "node": "reasoner",
+        "output": "I could not find current policy language covering this.",
+        "confidence": "low",
+        "cited": [],
+        "detail": "cited 0 current doc(s), confidence=high"
+      },
+      {
+        "node": "responder",
+        "output": "I could not find current policy language covering this.",
+        "hedged": false,
+        "detail": "confidence=low; hedging=off"
+      }
+    ]
+  }
+]
