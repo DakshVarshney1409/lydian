@@ -53,4 +53,4 @@ Write a class in `providers.py` with a `name` and a `complete(system, prompt)` m
 
 ## Questions
 
-Open an issue, or write to hello@lydian.dev.
+Open an issue, or write to dakshvarshney2002@gmail.com.
