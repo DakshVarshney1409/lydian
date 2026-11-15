@@ -1,119 +1,180 @@
 # Lydian
 
-[![checks](https://github.com/DakshVarshney1409/lydian/actions/workflows/checks.yml/badge.svg)](https://github.com/DakshVarshney1409/lydian/actions/workflows/checks.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![checks](https://github.com/DakshVarshney1409/lydian/actions/workflows/checks.yml/badge.svg)](https://github.com/DakshVarshney1409/lydian/actions/workflows/checks.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**Root-cause evaluation for AI agents.** Your evals tell you the answer was wrong. Lydian reads the trace and tells you *which node* caused it, so you go straight to the component that needs changing instead of reading transcripts.
+Root-cause evaluation for AI agents.
 
-> **Status: early, open source, actively developed.** What works today is the core engine and the benchmark that tests it. Everything else on the [roadmap](ROADMAP.md) is open for contributions. Site: [lydian-eval.netlify.app](https://lydian-eval.netlify.app)
+When an agent gives a wrong answer, most eval tools tell you *that* it was wrong. Lydian reads the agent's trace and tells you *which step* caused it: the intent classifier, the retriever, the reasoning step, or the final response. You get the node to fix, a one-line reason, and a suggested fix.
 
-## Does it work?
+```
+CUSTOMER   "I don't want to file a claim yet, I just want to know if flood is covered."
+AGENT      "Claims must be reported within 30 days of the date of loss..."
 
-The whole idea rests on one claim, so it was tested before anything else got built. A mock insurance-claims agent with planted bugs produces traces where the true root cause is known exactly. An LLM judge reads each trace, without seeing the bugs or the labels, and names the node it thinks is responsible.
+LYDIAN     failed: true
+           node:   intent
+           reason: the negation was dropped, so a coverage question was routed to new_claim
+```
 
-13 real failures and 5 passing controls, each judged 3 times. Latest run (November 2026, judge `claude-sonnet-5` at high effort):
+Website: [lydian-eval.netlify.app](https://lydian-eval.netlify.app)
 
-| | Full traces | Notes stripped (the honest number) |
-|---|---|---|
-| Real failures flagged | 39/39 (100%) | 36/39 (92%) |
-| Root-cause node named correctly | 37/39 (95%) | 36/39 (92%) |
-| Passing controls wrongly flagged | 0/15 (0%) | 0/15 (0%) |
-| Node labels the judge used | 4 of 4 | 4 of 4 |
+## Installation
 
-The judge used all four labels, so the chance baseline really is about 25%. An earlier run in September scored 87% stripped localization; across the two runs, stripped localization is **87–92%**.
-
-**Where it is weak.** On stripped traces the judge has missed the same case in all six runs so far: a reasoner that silently drops the deadline attached to a correctly retrieved document (T10). It reads the reply as complete and flags nothing. Per node, stripped: intent 9/9, retriever 18/18, reasoner 3/6, responder 6/6. On full traces it blames the reasoner for a responder fault in 2 of 3 runs (T12). Closing the reasoner gap is the first item on the [roadmap](ROADMAP.md).
-
-**Caveats.** These are planted bugs in a small, deterministic, linear agent. That shows node-level diagnosis can work. It does not yet show it works on messy production traces, branching graphs, or other domains. Raw judgments are in [`results/`](results/).
-
-## Quick start
+Requires Python 3.10+.
 
 ```bash
 git clone https://github.com/DakshVarshney1409/lydian.git
 cd lydian
 pip install -r requirements.txt
-cp .env.example .env                      # then add the API key for your provider
-
-python3 verify_ground_truth.py            # establishes labels -> ground_truth.json (no API calls)
-python3 run_experiment.py --runs 3 --both # judges every case, full and stripped
+cp .env.example .env
 ```
 
-`verify_ground_truth.py` should report **18/18 cases agree**. `--runs 3 --both` is 108 judge calls.
+Open `.env` and add an API key for the model provider you want to use as the judge (see [Choosing a model](#choosing-a-model)).
 
-### Pick any model provider
+## Quick start
 
-The judge isn't tied to one vendor. Two backends cover almost everything:
+Lydian ships with a benchmark: a small insurance-claims agent with bugs planted at known nodes. Running it is the fastest way to see what Lydian does and how well a given model judges.
 
-| Provider | Covers | Example |
+```bash
+python3 verify_ground_truth.py            # builds the answer key, no API calls
+python3 run_experiment.py --runs 3 --both
+```
+
+The first command should print `18/18 cases agree`. The second judges all 18 cases three times, once with per-step notes in the trace and once without, and prints:
+
+- **Detection**: how many real failures were flagged
+- **Localization**: how many named the correct node
+- **False alarm**: how many correct answers were wrongly flagged
+- **Consistency**: whether the judge gives the same answer across runs
+
+Raw judgments are written to `judge_results.json` (or `--out <file>`), along with the provider, model and settings used.
+
+A full run is 108 model calls, about $1.20 with the default judge.
+
+## Choosing a model
+
+Lydian is not tied to one provider.
+
+| Provider | Use it for | Example |
 |---|---|---|
 | `anthropic` (default) | Anthropic models | `python3 run_experiment.py --runs 3 --both` |
-| `openai` | OpenAI, and any OpenAI-compatible endpoint: Ollama, vLLM, LM Studio, OpenRouter, Groq, Together, DeepSeek, Mistral, Gemini | `python3 run_experiment.py --provider openai --model <model> --runs 3 --both` |
-| `openai` + local server | Open-weight models on your own machine, no key and no data leaving it | `python3 run_experiment.py --provider openai --base-url http://localhost:11434/v1 --model <model>` |
+| `openai` | OpenAI, or any OpenAI-compatible API: OpenRouter, Groq, Together, DeepSeek, Mistral, Gemini | `python3 run_experiment.py --provider openai --model <model>` |
+| `openai` + `--base-url` | A model on your own machine (Ollama, vLLM, LM Studio). No API key needed. | `python3 run_experiment.py --provider openai --base-url http://localhost:11434/v1 --model <model>` |
 
-Set these with flags or in `.env`: `LYDIAN_PROVIDER`, `LYDIAN_JUDGE_MODEL`, `LYDIAN_JUDGE_EFFORT` and `LYDIAN_BASE_URL`. Install only the SDK you use. Adding another provider is one small class in [`providers.py`](providers.py).
+Every option can also be set in `.env`:
 
-The default judge, Anthropic's `claude-sonnet-5`, costs about $1.20 for a full `--runs 3 --both`. How other models compare on accuracy and cost is an open [roadmap](ROADMAP.md) item, and results from any provider are welcome in `results/`.
-
-## How it works
-
-### The agent
-
-Four nodes: `intent → retriever → reasoner → responder`. Deterministic, so ground truth is exact rather than estimated.
-
-| Bug | Node | What it does | Fires when |
-|---|---|---|---|
-| A | intent | Negation isn't parsed: "before I file, is X covered?" routes to new_claim | negation present |
-| B | retriever | Out-of-date documents are never pruned; superseded and expired docs stay servable | a stale doc serves a requested topic |
-| C | retriever | Fixed `top_k=1`, so multi-topic questions get half an answer | multi-topic query |
-| D | reasoner | Drops the cap / deadline / prerequisite attached to a correctly retrieved document | a cited doc carries conditions |
-| E | responder | Strips hedging, so a weakly supported answer is asserted as fact | confidence is low |
-
-**Why the retriever owns date filtering.** Supersession and expiry are index metadata, visible at selection time. A retriever that serves an expired document has failed at its own job, and the reasoner downstream cannot un-retrieve it.
-
-**Why the reasoner's bug is about conditions.** Intent was right, retrieval was right, the reply reads as confident and complete, and the answer is still materially wrong. That fault belongs to the reasoner alone.
-
-**Why confidence has a support signal.** `support` is raw lexical overlap with the query. Weak support means "we found something adjacent, not an answer", a low-confidence state that still carries substantive text, so stripping the hedge does real harm.
-
-### Ground truth
-
-**Root cause = the node owning the earliest-in-pipeline bug that, enabled alone against an otherwise clean agent, reproduces the failure.** That is a causal test, not "first node whose output differs". Each case is cross-checked by leave-one-out ablation from all-bugs-on, and overdetermined cases are reported rather than hidden. Cases the clean agent fails are flagged as broken test cases.
-
-### Test cases
-
-13 failures and 5 controls. Four of the five controls are **reachable**: a bug fires and changes the trace, but the answer stays correct. That makes the false-alarm rate meaningful rather than a test of recognising a pristine trace. Every `must_contain` assertion is satisfied by exactly one document in the corpus, so no case can pass on a generic word.
-
-### Metrics
-
-- **Detection**: of the cases that really failed, how many were flagged
-- **Localization**: how many named the correct root-cause node
-- **False alarm**: of the passing controls, how many were wrongly flagged
-- **Consistency**: with `--runs > 1`, how often the judge disagrees with itself
-- **Label spread**: how many node labels the judge uses at all. Read localization against this, not a flat 25%: a judge using two labels has a ~50% baseline.
-
-`--strip-detail` removes the per-step `notes` from every trace. Real traces don't come with tidy diagnostic annotations, so treat full traces as the ceiling and stripped as the honest number. `--both` runs them side by side.
-
-### The judge
-
-`judge.py` holds the prompt, and `providers.py` sends it to whichever model you configure. The prompt describes each node's job and the earliest-node rule, and deliberately contains no worked examples or failure taxonomy, because an earlier version leaked the answer key that way. The policy index is rendered as plain metadata with today's date, so the judge has to work out document currency itself.
-
-## Files
-
-| File | Purpose |
+| Variable | Meaning |
 |---|---|
-| `corpus.py` | 8 policy documents, one superseded and one expired, with separable `conditions` |
-| `agent.py` | The 4-node mock agent with toggleable bugs |
-| `test_cases.py` | 18 cases with correctness assertions |
-| `verify_ground_truth.py` | Single-bug ablation → `ground_truth.json` |
-| `judge.py` | The judge prompt and verdict parsing |
-| `providers.py` | Model providers: Anthropic, and any OpenAI-compatible endpoint |
-| `run_experiment.py` | Scoring → `judge_results.json` |
-| `results/` | Published runs, for comparison |
-| `tests/` | Offline tests: no API key or network needed |
-| `site/` | The project website ([lydian-eval.netlify.app](https://lydian-eval.netlify.app)) |
+| `LYDIAN_PROVIDER` | `anthropic` or `openai` |
+| `LYDIAN_JUDGE_MODEL` | Model name. Required for `openai`. |
+| `LYDIAN_JUDGE_EFFORT` | Reasoning effort, for models that support it |
+| `LYDIAN_BASE_URL` | Endpoint for OpenAI-compatible servers |
+| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Key for the provider you use |
+
+You only need the SDK for the provider you use. If the first call fails (bad key, unknown model), the run stops immediately instead of making 108 failing calls.
+
+## Using Lydian on your own agent
+
+Today this is done from Python. A trace adapter and a `lydian diagnose` command are in progress ([#9](https://github.com/DakshVarshney1409/lydian/issues/9)).
+
+**1. Export your trace** as a list of steps, one object per node, in the order they ran. `node` is required; every other field is passed to the judge as that node's output.
+
+```python
+trace = [
+    {"node": "planner", "output": "refund_request", "topics": ["refunds"]},
+    {"node": "search",  "output": ["KB-REFUNDS-2024"]},
+    {"node": "writer",  "output": "Refunds take 30 days."},
+]
+```
+
+**2. Describe your pipeline to the judge.** The default prompt in `judge.py` (`SYSTEM`) describes the benchmark's four nodes. Copy it, keep the sections on assigning fault and the verdict format, and replace the pipeline section with your nodes and what each one is responsible for.
+
+**3. Run the judge.**
+
+```python
+import judge, providers
+
+judge.SYSTEM = open("my_pipeline_prompt.txt").read()
+judge.NODES = ["planner", "search", "writer"]
+judge.TODAY = "2026-11-15"     # lets the judge reason about document dates
+
+docs = [  # the reference documents your agent answers from, if any
+    {"id": "KB-REFUNDS-2025", "title": "Refund policy",
+     "effective": "2025-01-01", "text": "Refunds are processed within 14 days."},
+]
+
+provider = providers.make(providers.resolve())   # reads .env
+verdict = judge.judge_one(
+    query="How long do refunds take?",
+    trace=trace,
+    final_answer="Refunds take 30 days.",
+    corpus=docs,
+    provider=provider,
+    strip_detail=True,          # your steps have no "detail" notes
+)
+print(verdict)
+# {'failed': True, 'node': 'search', 'reason': '...', 'fix': '...', 'parse_error': False}
+```
+
+A document may also carry `expires`, `superseded_by` and `conditions`. If your steps include a human-readable `detail` field, pass `strip_detail=False` to show it to the judge.
+
+## Results
+
+On the bundled benchmark (13 failing cases, 5 correct ones, 3 runs each), with `claude-sonnet-5`:
+
+| | With step notes | Without step notes |
+|---|---|---|
+| Failures flagged | 100% | 92% |
+| Correct node named | 95% | 92% |
+| Correct answers wrongly flagged | 0% | 0% |
+
+Without notes, an earlier run scored 87% on the correct node. The judge's main weakness: it misses a reasoning step that silently drops a condition (such as a deadline) from the right document. Per-run files are in [`results/`](results/), and fixing that weakness is [#1](https://github.com/DakshVarshney1409/lydian/issues/1).
+
+This is a small, controlled benchmark. Results from other models, other domains and real traces are welcome.
+
+## How the benchmark works
+
+- `agent.py` is a deterministic four-node agent (`intent → retriever → reasoner → responder`) with five bugs that can be switched on and off.
+- `test_cases.py` has 18 questions with assertions on what a correct answer must and must not say.
+- `verify_ground_truth.py` decides each case's root cause by experiment: it switches on one bug at a time against a clean agent and records which one reproduces the failure. The judge never sees these labels.
+- `judge.py` holds the judge prompt; `providers.py` sends it to the configured model.
+- `run_experiment.py` judges every case and scores the verdicts against the answer key.
+
+## Project structure
+
+```
+agent.py                 benchmark agent with switchable bugs
+corpus.py                policy documents the agent answers from
+test_cases.py            benchmark questions and assertions
+verify_ground_truth.py   builds ground_truth.json (no API calls)
+judge.py                 judge prompt and verdict parsing
+providers.py             model providers
+run_experiment.py        runs and scores the judge
+results/                 published benchmark runs
+tests/                   offline tests
+site/                    project website
+```
 
 ## Contributing
 
-Contributions are welcome: better judging, new agents and domains, trace adapters, new model providers, and cheaper runs. Start with [ROADMAP.md](ROADMAP.md) and [CONTRIBUTING.md](CONTRIBUTING.md). The one rule: **any change to the judge ships with before-and-after numbers on the stripped variant.**
+Contributions are welcome, from fixing a typo to improving the judge. Good places to start:
+
+- Issues labelled [good first issue](https://github.com/DakshVarshney1409/lydian/labels/good%20first%20issue)
+- Run the benchmark with a model that isn't in `results/` yet and open a PR with the file
+- The [roadmap](ROADMAP.md) for larger pieces of work
+
+To set up for development:
+
+```bash
+pip install -r requirements.txt
+python3 verify_ground_truth.py        # must print 18/18 and leave ground_truth.json unchanged
+python3 -m unittest discover tests    # no API key needed
+```
+
+If your change affects the judge's verdicts (the prompt, parsing, scoring or a provider), include before-and-after numbers from `run_experiment.py --runs 3 --both`, run with the same model. The PR template has a table for this.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide, including how to add test cases and model providers.
 
 ## License
 
-[MIT](LICENSE) © 2026 Daksh Varshney
+[MIT](LICENSE)

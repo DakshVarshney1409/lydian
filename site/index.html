@@ -166,6 +166,7 @@ header.hero{padding:clamp(48px,7vw,96px) 0 clamp(40px,6vw,68px)}
   color:var(--fault);flex:none;padding-top:2px;letter-spacing:.1em}
 .scope-verdict p{margin:0;font-size:14px;color:var(--ink);max-width:none}
 .scope-verdict p span{color:var(--ink-3);display:block;margin-top:5px;font-size:13px}
+.scope-verdict p span.mono{display:inline;margin:0;font-size:inherit;color:var(--ink)}
 
 /* ---------- sections ---------- */
 section{padding:clamp(60px,8.5vw,112px) 0;border-top:1px solid var(--rule)}
@@ -227,7 +228,7 @@ pre .f{color:var(--fault)}
 .fineprint{margin-top:22px;font-size:13.5px;color:var(--ink-3);max-width:var(--measure)}
 
 /* trust */
-.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.trust{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:18px}
 @media (max-width:820px){.trust{grid-template-columns:1fr}}
 .tcard{border:1px solid var(--rule);border-radius:5px;background:var(--panel);padding:24px}
 .tcard p{font-size:14.5px;color:var(--ink-3);margin:0;max-width:none}
@@ -397,16 +398,19 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--flow);outline-offse
 .chart-foot{font-size:13.5px;color:var(--ink-3);margin:18px 0 0;max-width:var(--measure)}
 
 
-/* ---------- roadmap pill ---------- */
-.soon{display:inline-block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:9px;
-  letter-spacing:.16em;text-transform:uppercase;color:var(--flow);border:1px solid var(--rule);
-  border-radius:2px;padding:3px 6px;line-height:1;vertical-align:middle;margin-left:8px;font-style:normal}
-.eyebrow .soon{margin-left:10px}
-
-/* ---------- beta badge ---------- */
-.beta{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:9px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--fault);border:1px solid #FFB03A55;border-radius:2px;
-  padding:2px 5px;margin-left:2px;align-self:center;line-height:1;background:var(--fault-dim)}
+/* ---------- coming next ---------- */
+.next-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media (max-width:980px){.next-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){.next-grid{grid-template-columns:1fr}}
+.ncard{display:block;border:1px solid var(--rule);border-radius:5px;background:var(--panel);padding:24px;
+  color:inherit;text-decoration:none;
+  transition:transform .34s cubic-bezier(.22,1,.36,1),border-color .34s ease,box-shadow .34s ease}
+.ncard:hover{transform:translateY(-3px);border-color:#2C4166;box-shadow:0 18px 40px -26px #000B}
+.nk{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--flow);margin:0 0 12px}
+.ncard h3{font-size:17px;margin:0 0 8px}
+.ncard p{font-size:14.5px;color:var(--ink-3);margin:0;max-width:none}
+.ncard code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12.5px;color:var(--ink-2)}
 
 /* ---------- sub-head inside a merged section ---------- */
 .sub-head{margin:clamp(38px,5vw,60px) 0 26px;padding-top:clamp(30px,4vw,44px);
@@ -601,17 +605,14 @@ nav.tight{background:#070B12EE}
         <rect class="sharp" x="19" y="2" width="4" height="24" rx="1.4" fill="#FFB03A"/>
         <rect x="25" y="8"  width="4" height="18" rx="1.4" fill="#56C7F5"/>
       </svg>
-      <span class="name">Lydian</span><span class="beta">Open source</span>
+      <span class="name">Lydian</span>
     </a>
     <div class="nav-links">
-      <a href="#offer">What we offer</a>
-      <a href="#dataset">Test sets</a>
-      <a href="#setup">Setup</a>
-      <a href="#catches">What it checks</a>
-      <a href="#graph">Topologies</a>
+      <a href="#setup">How it plugs in</a>
       <a href="#compare">How we differ</a>
       <a href="#whyus">Why Lydian</a>
-      <a href="#demo">Demo</a>
+      <a href="#demo">Results</a>
+      <a href="#next">Coming next</a>
       <a class="btn" href="https://github.com/DakshVarshney1409/lydian" target="_blank" rel="noopener">GitHub</a>
     </div>
   </div>
@@ -679,132 +680,16 @@ nav.tight{background:#070B12EE}
   </div>
 </header>
 
-<section id="offer" class="inner">
-  <div class="sec-head r">
-    <p class="eyebrow">What we offer</p>
-    <h2>One works today. Three are being built in the open.</h2>
-  </div>
-
-  <div class="offer-grid r">
-    <div class="ocard feature">
-      <span class="onum">01</span>
-      <h3>Node-level root cause</h3>
-      <p>Not a score. The one component whose behaviour would have to change, with the rest explicitly cleared.</p>
-      <div class="mini-verdict">
-        <span class="mv-row"><span class="mv-k">root cause</span><span class="mv-v fault">retriever</span></span>
-        <span class="mv-row"><span class="mv-k">working</span><span class="mv-v ok">intent &middot; reasoner &middot; responder</span></span>
-      </div>
-    </div>
-    <div class="ocard">
-      <span class="onum">02</span>
-      <h3>We write your test set<span class="soon">Roadmap</span></h3>
-      <p>Lydian reads your knowledge base and drafts the cases, golden answers included. You approve, you don't author.</p>
-    </div>
-    <div class="ocard">
-      <span class="onum">03</span>
-      <h3>Regression on every change<span class="soon">Roadmap</span></h3>
-      <p>Re-run the whole set after a prompt edit. See which node moved and which cases you just broke.</p>
-    </div>
-    <div class="ocard">
-      <span class="onum">04</span>
-      <h3>Runs on your traces<span class="soon">Roadmap</span></h3>
-      <p>Whatever your framework already logs. No rewrite, no SDK lock-in, runs wherever you run it.</p>
-    </div>
-  </div>
-</section>
-
-<section id="dataset" class="inner">
-  <div class="sec-head r">
-    <p class="eyebrow">Eval datasets, generated<span class="soon">Roadmap</span></p>
-    <h2>The blank page is the reason most teams never start.</h2>
-    <p>Point Lydian at your policy docs, help centre, or product spec. It drafts a test set with expected answers already filled in.</p>
-  </div>
-
-  <div class="gen-flow r">
-    <div class="gen-step">
-      <span class="gs-ix">Your source</span>
-      <div class="gs-body">
-        <span class="doc-chip">policy_deductibles.pdf</span>
-        <span class="doc-chip">exclusions_2026.md</span>
-        <span class="doc-chip">claims_faq.html</span>
-        <span class="doc-chip dim">+ 41 more</span>
-      </div>
-    </div>
-    <div class="gen-arrow" aria-hidden="true">
-      <svg viewBox="0 0 40 12"><path d="M0 6 H31" stroke="#56C7F5" stroke-width="1.5" fill="none"/><path d="M27 2 L33 6 L27 10" stroke="#56C7F5" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </div>
-    <div class="gen-step wide">
-      <span class="gs-ix">Drafted for you &mdash; edit or approve</span>
-      <div class="gs-body col">
-        <div class="gcase">
-          <p class="gq">"What's my deductible for water damage?"</p>
-          <p class="ga"><span class="tick">&#10003;</span> golden answer <b>$1,000</b> &middot; source <b>POL-DED-v3</b></p>
-          <p class="gx"><span class="cross">&#10007;</span> must never say <b>$500</b> <span class="dim">(2024 schedule, superseded)</span></p>
-        </div>
-        <div class="gcase">
-          <p class="gq">"Is mold covered if I report it late?"</p>
-          <p class="ga"><span class="tick">&#10003;</span> golden answer must carry <b>the 14-day condition</b></p>
-          <p class="gx"><span class="cross">&#10007;</span> must never say <b>"excluded in all circumstances"</b></p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <p class="fineprint r">It finds the traps on its own: the superseded document still sitting in your index, the condition attached to a coverage rule, the question two of your docs answer differently. Those are the cases a hand-written test set always misses.</p>
-</section>
-
 <section id="setup" class="inner">
   <div class="sec-head r">
-    <p class="eyebrow">Zero AI knowledge required<span class="soon">Roadmap</span></p>
-    <h2>If you can describe a good answer,<br>you can test an AI agent.</h2>
-    <p>No model to tune, no dataset to label, no code. Two lines per case, in plain English.</p>
-  </div>
-
-  <div class="pair-grid r seq">
-    <div class="card">
-      <div class="card-h"><i class="in"></i>You write this</div>
-<pre><span class="k">ask:</span>          <span class="s">"Is mold covered if I report it late?"</span>
-<span class="k">must say:</span>     <span class="s">"reported within 14 days"</span>
-<span class="k">must not say:</span> <span class="s">"excluded in all circumstances"</span></pre>
-    </div>
-    <div class="card">
-      <div class="card-h"><i class="out"></i>You get this back</div>
-<pre><span class="f">FAIL</span>   the reply dropped the 14-day condition
-
-<span class="k">broken</span>  <span class="f">reasoner</span>
-<span class="k">why</span>     the right document was retrieved, then
-        the deadline attached to it was left out
-<span class="k">fix</span>     carry document conditions into the answer
-
-<span class="k">fine</span>    <span class="n">intent &middot; retriever &middot; responder</span></pre>
-    </div>
-  </div>
-
-  <div class="who r">
-    <div class="wcard">
-      <p class="nd">Product</p>
-      <h3>Roadmap arguments become tests</h3>
-      <p>The edge case you debated in refinement is two lines and never regresses again.</p>
-    </div>
-    <div class="wcard">
-      <p class="nd">Support</p>
-      <h3>Tickets become coverage</h3>
-      <p>This morning's complaint is this afternoon's test. Paste it in, done.</p>
-    </div>
-    <div class="wcard">
-      <p class="nd">Founder</p>
-      <h3>Check it yourself</h3>
-      <p>Run it before standup. Know whether last week's prompt change cost you anything.</p>
-    </div>
-  </div>
-
-  <div class="sub-head r">
-    <h3 class="sh">And on the engineering side</h3>
-    <p>One object per step. That's the whole contract.</p>
+    <p class="eyebrow">How it plugs in</p>
+    <h2>One object per step.<br>That's the whole contract.</h2>
+    <p>Lydian reads a trace as a list of steps: which node ran and what it produced. The judge reads that, the question, and the final answer, and names the step that broke.</p>
   </div>
 
   <div class="plug-grid r">
     <div class="card">
-      <div class="card-h"><i class="in"></i>trace.json &mdash; what your agent already logs</div>
+      <div class="card-h"><i class="in"></i>trace.json &mdash; one object per step</div>
 <pre><span class="k">[</span>
   { <span class="k">"node"</span>: <span class="n">"intent"</span>,    <span class="k">"output"</span>: <span class="s">"new_claim"</span>,
     <span class="k">"topics"</span>: [<span class="s">"filing"</span>] },
@@ -815,9 +700,9 @@ nav.tight{background:#070B12EE}
     </div>
     <div class="plug-notes">
       <div class="pn"><span class="pn-k">Minimum</span><p>A node name and its output. Anything else you pass through gets used.</p></div>
-      <div class="pn"><span class="pn-k">Where it runs</span><p>Your CI on every change, or against production traces on a schedule.</p></div>
-      <div class="pn"><span class="pn-k">Frameworks</span><p>LangGraph, LlamaIndex, CrewAI, or a hand-rolled loop. If it has steps, it fits.</p></div>
-      <div class="pn"><span class="pn-k">Time to first result</span><p>Bring one trace you already argued about. Ten minutes.</p></div>
+      <div class="pn"><span class="pn-k">Any model</span><p>Anthropic, OpenAI, or any OpenAI-compatible endpoint, including a model running on your own machine.</p></div>
+      <div class="pn"><span class="pn-k">Frameworks</span><p>Export your trace to this shape from any framework. Built-in adapters for LangGraph, LlamaIndex and OpenTelemetry are coming next.</p></div>
+      <div class="pn"><span class="pn-k">Time to first result</span><p>Clone, add a key, run the benchmark. A few minutes.</p></div>
     </div>
   </div>
 
@@ -827,124 +712,8 @@ nav.tight{background:#070B12EE}
       <p>Open source and MIT licensed. It runs on your machine with your own API key. Traces go only to the model provider you configure.</p>
     </div>
     <div class="tcard">
-      <h3>Redact before you send<span class="soon">Roadmap</span></h3>
-      <p>Lydian reasons over node structure and document identifiers. Policy text and customer PII can be masked.</p>
-    </div>
-    <div class="tcard">
       <h3>No hosted service</h3>
       <p>There is no Lydian server collecting your traces. Results are written to a local file, and nothing is kept beyond that.</p>
-    </div>
-  </div>
-</section>
-
-<section id="catches" class="inner">
-  <div class="sec-head r">
-    <p class="eyebrow">What it checks</p>
-    <h2>The things a regulator would ask about.</h2>
-    <p>Written for insurance first. The same checks transfer directly to lending, benefits, and any domain where the answer has to match a document that changes. Five are exercised by the benchmark today; coverage determination and required disclosure are on the roadmap.</p>
-  </div>
-
-  <div class="metrics-table r">
-    <div class="mt-head">
-      <span>Check</span><span>What it catches</span><span>Component</span>
-    </div>
-    <div class="mt-row">
-      <span class="mt-n">Policy currency</span>
-      <span class="mt-d">A superseded schedule or an expired exclusion quoted as if in force on the date of loss.</span>
-      <span class="mt-c">retriever</span>
-    </div>
-    <div class="mt-row">
-      <span class="mt-n">Coverage determination</span>
-      <span class="mt-d">Covered called excluded, or the reverse, against the governing document.</span>
-      <span class="mt-c">reasoner</span>
-    </div>
-    <div class="mt-row">
-      <span class="mt-n">Monetary accuracy</span>
-      <span class="mt-d">Deductibles, sub-limits and caps quoted from the wrong plan year.</span>
-      <span class="mt-c">retriever</span>
-    </div>
-    <div class="mt-row">
-      <span class="mt-n">Condition completeness</span>
-      <span class="mt-d">The cap, the reporting deadline, the endorsement prerequisite &mdash; dropped, so conditional coverage reads as unconditional.</span>
-      <span class="mt-c">reasoner</span>
-    </div>
-    <div class="mt-row">
-      <span class="mt-n">Question fidelity</span>
-      <span class="mt-d">A pre-filing coverage question answered with filing instructions. Half a two-part question answered.</span>
-      <span class="mt-c">intent</span>
-    </div>
-    <div class="mt-row">
-      <span class="mt-n">Confidence calibration</span>
-      <span class="mt-d">Thin or absent evidence stated flatly, with no signal to the customer that it was a guess.</span>
-      <span class="mt-c">responder</span>
-    </div>
-    <div class="mt-row">
-      <span class="mt-n">Required disclosure</span>
-      <span class="mt-d">Appeal rights, endorsement requirements or adjuster referral missing from a reply that needed them.</span>
-      <span class="mt-c">responder</span>
-    </div>
-  </div>
-
-  <p class="fineprint r">Each row is a failing test case with a named component, not a score between one and five. The component is what makes it a ticket instead of a discussion.</p>
-</section>
-
-<section id="graph" class="inner">
-  <div class="sec-head r">
-    <p class="eyebrow">Real topologies<span class="soon">Roadmap</span></p>
-    <h2>Your agent isn't a straight line. Neither is the blame.</h2>
-    <p>Branches, parallel retrieval, a guardrail on one path only. The goal: walk the actual graph backwards and clear everything that wasn't involved. Today's benchmark is a linear four-node agent; branching graphs are next.</p>
-  </div>
-
-  <div class="graph-wrap r">
-    <div class="graph-bar">
-      <span class="gb-t">claims-assistant &middot; 11 nodes &middot; trace 9c14e8</span>
-      <span class="gb-legend">
-        <span><i class="sw flow"></i>executed</span>
-        <span><i class="sw fault"></i>on the fault path</span>
-        <span><i class="sw ok"></i>cleared</span>
-      </span>
-    </div>
-    <div class="dag-scroll">
-    <svg id="dag" viewBox="0 0 960 380" role="img" aria-label="An eleven-node agent graph. The failure is traced back through reply, responder, reasoner and reranker to the policy index node, which is the root cause. The other six nodes are cleared.">
-      <g class="gedges">
-      <path class="gedge" data-e="router-intent" d="M108 190 C136 190 114 110 142 110"/>
-      <path class="gedge" data-e="router-pii" d="M108 190 C136 190 114 270 142 270"/>
-      <path class="gedge" data-e="intent-rpol" d="M238 110 C266 110 254 60 282 60"/>
-      <path class="gedge" data-e="intent-rclm" d="M238 110 C266 110 254 190 282 190"/>
-      <path class="gedge" data-e="intent-web" d="M238 110 C266 110 254 320 282 320"/>
-      <path class="gedge" data-e="pii-rclm" d="M238 270 C266 270 254 190 282 190"/>
-      <path class="gedge fault" data-e="rpol-rerank" d="M378 60 C406 60 404 125 432 125"/>
-      <path class="gedge" data-e="rclm-rerank" d="M378 190 C406 190 404 125 432 125"/>
-      <path class="gedge" data-e="web-rerank" d="M378 320 C406 320 404 125 432 125"/>
-      <path class="gedge fault" data-e="rerank-reason" d="M528 125 C556 125 544 190 572 190"/>
-      <path class="gedge" data-e="reason-guard" d="M668 190 C696 190 684 110 712 110"/>
-      <path class="gedge fault" data-e="reason-respond" d="M668 190 C696 190 684 270 712 270"/>
-      <path class="gedge" data-e="guard-respond" d="M808 110 C836 110 684 270 712 270"/>
-      <path class="gedge fault" data-e="respond-out" d="M808 270 C836 270 814 190 842 190"/>
-      </g>
-      <g class="gnodes">
-      <g class="gnode" data-n="router"><rect x="12" y="173" width="96" height="34" rx="4"/><text x="60" y="194" text-anchor="middle">router</text><circle class="gtick" cx="99" cy="182" r="3"/></g>
-      <g class="gnode" data-n="intent"><rect x="142" y="93" width="96" height="34" rx="4"/><text x="190" y="114" text-anchor="middle">intent</text><circle class="gtick" cx="229" cy="102" r="3"/></g>
-      <g class="gnode" data-n="pii"><rect x="142" y="253" width="96" height="34" rx="4"/><text x="190" y="274" text-anchor="middle">pii scrub</text><circle class="gtick" cx="229" cy="262" r="3"/></g>
-      <g class="gnode" data-n="rpol"><rect x="282" y="43" width="96" height="34" rx="4"/><text x="330" y="64" text-anchor="middle">policy index</text><circle class="gtick" cx="369" cy="52" r="3"/></g>
-      <g class="gnode" data-n="rclm"><rect x="282" y="173" width="96" height="34" rx="4"/><text x="330" y="194" text-anchor="middle">claims db</text><circle class="gtick" cx="369" cy="182" r="3"/></g>
-      <g class="gnode" data-n="web"><rect x="282" y="303" width="96" height="34" rx="4"/><text x="330" y="324" text-anchor="middle">web lookup</text><circle class="gtick" cx="369" cy="312" r="3"/></g>
-      <g class="gnode" data-n="rerank"><rect x="432" y="108" width="96" height="34" rx="4"/><text x="480" y="129" text-anchor="middle">reranker</text><circle class="gtick" cx="519" cy="117" r="3"/></g>
-      <g class="gnode" data-n="reason"><rect x="572" y="173" width="96" height="34" rx="4"/><text x="620" y="194" text-anchor="middle">reasoner</text><circle class="gtick" cx="659" cy="182" r="3"/></g>
-      <g class="gnode" data-n="guard"><rect x="712" y="93" width="96" height="34" rx="4"/><text x="760" y="114" text-anchor="middle">guardrail</text><circle class="gtick" cx="799" cy="102" r="3"/></g>
-      <g class="gnode" data-n="respond"><rect x="712" y="253" width="96" height="34" rx="4"/><text x="760" y="274" text-anchor="middle">responder</text><circle class="gtick" cx="799" cy="262" r="3"/></g>
-      <g class="gnode" data-n="out"><rect x="842" y="173" width="96" height="34" rx="4"/><text x="890" y="194" text-anchor="middle">reply</text><circle class="gtick" cx="929" cy="182" r="3"/></g>
-      </g>
-      <g class="groot-badge" transform="translate(282,26)">
-        <rect width="96" height="17" rx="2"/>
-        <text x="48" y="12" text-anchor="middle">ROOT CAUSE</text>
-      </g>
-    </svg>
-    </div>
-    <div class="graph-verdict">
-      <span class="gv-mark">&#9679;</span>
-      <p><strong>policy index</strong> returned a superseded deductible schedule.
-        <span>The reranker, reasoner and responder each handled it correctly. Six nodes never touched this request and are cleared &mdash; including the guardrail, which is where the team looked first.</span></p>
     </div>
   </div>
 </section>
@@ -953,7 +722,7 @@ nav.tight{background:#070B12EE}
   <div class="sec-head r">
     <p class="eyebrow">How we're different</p>
     <h2>Other tools give you a score. We tell you which node to fix.</h2>
-    <p>Tracing and eval platforms are good at recording what your agent did and grading what came out. They stop at "this answer scored 2/5". Lydian starts there. Node-level root cause works today; test-set drafting, regression runs and trace adapters are on the <a href="https://github.com/DakshVarshney1409/lydian/blob/main/ROADMAP.md" target="_blank" rel="noopener" style="color:var(--flow)">roadmap</a>.</p>
+    <p>Tracing and eval platforms are good at recording what your agent did and grading what came out. They stop at "this answer scored 2/5". Lydian starts there.</p>
   </div>
 
   <div class="vs r">
@@ -966,29 +735,14 @@ nav.tight{background:#070B12EE}
       <span class="vs-us"><span class="vs-lbl">Lydian</span><b>The node that caused it</b>, why, and a fix. Every other node is explicitly cleared.</span>
     </div>
     <div class="vs-row">
-      <span class="vs-q">You need test cases</span>
-      <span class="vs-them"><span class="vs-lbl">Typical platform</span>An engineer builds a dataset and sets up evaluators before anything runs.</span>
-      <span class="vs-us"><span class="vs-lbl">Lydian</span><b>Drafted from your knowledge base</b>, including the traps like superseded docs and dropped conditions. You approve them.</span>
-    </div>
-    <div class="vs-row">
-      <span class="vs-q">You choose what to measure</span>
-      <span class="vs-them"><span class="vs-lbl">Typical platform</span>General-purpose metrics: faithfulness, relevance, helpfulness on a scale.</span>
-      <span class="vs-us"><span class="vs-lbl">Lydian</span><b>Domain checks a regulator would ask about</b>, like policy currency, conditions and disclosures, each tied to a component.</span>
-    </div>
-    <div class="vs-row">
-      <span class="vs-q">You change a prompt</span>
-      <span class="vs-them"><span class="vs-lbl">Typical platform</span>An aggregate number moves on a dashboard.</span>
-      <span class="vs-us"><span class="vs-lbl">Lydian</span><b>The exact cases you broke</b> and which node's behaviour moved.</span>
-    </div>
-    <div class="vs-row">
-      <span class="vs-q">Someone non-technical wants to check</span>
-      <span class="vs-them"><span class="vs-lbl">Typical platform</span>Built for an ML or platform team, in their vocabulary.</span>
-      <span class="vs-us"><span class="vs-lbl">Lydian</span><b>Two lines of plain English per case.</b> Product, support and founders can write and read them.</span>
-    </div>
-    <div class="vs-row">
       <span class="vs-q">You adopt it</span>
       <span class="vs-them"><span class="vs-lbl">Typical platform</span>Instrument with their SDK, then do your work inside their platform.</span>
-      <span class="vs-us"><span class="vs-lbl">Lydian</span><b>Reads the node-shaped traces you already log.</b> No SDK lock-in, and the runner can be self-hosted.</span>
+      <span class="vs-us"><span class="vs-lbl">Lydian</span><b>Reads a node-by-node trace.</b> No SDK lock-in, and it runs on your own machine.</span>
+    </div>
+    <div class="vs-row">
+      <span class="vs-q">You pick the judge</span>
+      <span class="vs-them"><span class="vs-lbl">Typical platform</span>Their hosted judge model, on their pricing.</span>
+      <span class="vs-us"><span class="vs-lbl">Lydian</span><b>Any model provider</b>, hosted or local. Every result records which model produced it.</span>
     </div>
   </div>
 
@@ -1028,7 +782,7 @@ nav.tight{background:#070B12EE}
 
 <section id="demo" class="inner">
   <div class="sec-head r">
-    <p class="eyebrow">Demo</p>
+    <p class="eyebrow">Results</p>
     <h2>What it produced on an agent we broke on purpose.</h2>
     <p>Faults planted at known locations, so the right answer is provable rather than argued. Judged blind, with the diagnostic annotations stripped out to approximate a real pipeline. Latest run, November 2026; an earlier run scored 87% localization.</p>
   </div>
@@ -1092,6 +846,47 @@ nav.tight{background:#070B12EE}
         <text x="408" y="88" class="c-lg">not flagged &mdash; 3</text>
       </g>
     </svg>
+  </div>
+</section>
+
+<section id="next" class="inner">
+  <div class="sec-head r">
+    <p class="eyebrow">Coming next</p>
+    <h2>Built in the open.</h2>
+    <p>Lydian does one thing today: name the node that broke. These are next, and each one is an open issue you can pick up.</p>
+  </div>
+
+  <div class="next-grid r">
+    <a class="ncard" href="https://github.com/DakshVarshney1409/lydian/issues/1" target="_blank" rel="noopener">
+      <span class="nk">Accuracy</span>
+      <h3>Close the reasoner gap</h3>
+      <p>The judge still misses a reasoner that silently drops a deadline from the right document. Fixing that comes first.</p>
+    </a>
+    <a class="ncard" href="https://github.com/DakshVarshney1409/lydian/blob/main/ROADMAP.md#4-product-make-it-usable-on-your-own-agent" target="_blank" rel="noopener">
+      <span class="nk">Test sets</span>
+      <h3>Drafted from your docs</h3>
+      <p>Point it at your policy docs or help centre and get test cases with expected answers, including the traps: superseded documents and dropped conditions.</p>
+    </a>
+    <a class="ncard" href="https://github.com/DakshVarshney1409/lydian/blob/main/ROADMAP.md#4-product-make-it-usable-on-your-own-agent" target="_blank" rel="noopener">
+      <span class="nk">Plain English</span>
+      <h3>Cases anyone can write</h3>
+      <p><code>ask</code>, <code>must say</code>, <code>must not say</code>. Product, support and founders write the tests; Lydian names the node when one fails.</p>
+    </a>
+    <a class="ncard" href="https://github.com/DakshVarshney1409/lydian/blob/main/ROADMAP.md#4-product-make-it-usable-on-your-own-agent" target="_blank" rel="noopener">
+      <span class="nk">Regression</span>
+      <h3>Re-run after every change</h3>
+      <p>After a prompt edit, see exactly which cases broke and which node's behaviour moved.</p>
+    </a>
+    <a class="ncard" href="https://github.com/DakshVarshney1409/lydian/issues/8" target="_blank" rel="noopener">
+      <span class="nk">Topologies</span>
+      <h3>Branching graphs</h3>
+      <p>Routers, parallel retrieval, guardrails on one path. Walk the real graph back and clear every node that never ran.</p>
+    </a>
+    <a class="ncard" href="https://github.com/DakshVarshney1409/lydian/issues/9" target="_blank" rel="noopener">
+      <span class="nk">Integrations</span>
+      <h3>Trace adapters and a CLI</h3>
+      <p>Import traces from LangGraph, LlamaIndex and OpenTelemetry, with redaction of customer data before anything is sent.</p>
+    </a>
   </div>
 </section>
 
