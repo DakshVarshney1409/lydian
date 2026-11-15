@@ -108,8 +108,9 @@ def report(label, cases, results, runs, cfg):
     print(f"\n  Label spread (how many distinct nodes the judge is willing to name):")
     for n in NODES + ["None"]:
         print(f"    {n:<11} {spread.get(n, 0)}")
+    note = "" if len(used) == 4 else ", not 25%"
     print(f"    -> used {len(used)}/4 node labels. Effective chance baseline is "
-          f"~{1 / max(len(used), 1):.0%}, not 25%.")
+          f"~{1 / max(len(used), 1):.0%}{note}.")
 
     if runs > 1:
         print("\n  Per-case consistency across runs:")

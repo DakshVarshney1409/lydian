@@ -2,14 +2,14 @@
 
 Ordered by what most improves the core claim: *name the node that broke, correctly, cheaply, on real traces*. Each item says what "done" looks like. Pick one, open an issue saying you're on it, and send numbers with the PR.
 
-Baseline to beat (stripped traces, 3 runs): **detection 92%, localization 87%, false alarm 0%**.
+Baseline to beat (stripped traces, 3 runs, `claude-sonnet-5`): **detection 92%, localization 92%, false alarm 0%**. Stripped localization has ranged 87–92% across runs.
 
 ---
 
 ## 1. Algorithm: make the judge more accurate
 
 ### 1.1 Close the reasoner gap *(highest priority)*
-On stripped traces the judge localized the reasoner 3/6 times. Case T10 was not flagged at all in 3/3 runs: the reasoner dropped a deadline from a correctly retrieved document, and the reply read as complete.
+On stripped traces the judge localized the reasoner 3/6 times. Case T10 was not flagged at all in any of the 6 stripped runs so far: the reasoner dropped a deadline from a correctly retrieved document, and the reply read as complete.
 
 Idea: before the verdict, have the judge check the answer claim by claim against each cited document's stated conditions (caps, deadlines, prerequisites), then decide.
 **Done when:** reasoner localization ≥ 5/6 stripped, with no drop elsewhere and false alarms still 0.
@@ -23,7 +23,7 @@ On full traces, T12 (a responder stripping a hedge) was blamed on the reasoner i
 **Done when:** T12 is stable across runs on both variants.
 
 ### 1.4 Stability
-T08 (stripped) and T12 (full) gave different answers across runs. Try self-consistency: sample N verdicts and vote only when the first pass is uncertain, so the cost stays close to one call.
+T12 (full) gave different answers across runs in both published runs, and T08 (stripped) wavered in the September run. Try self-consistency: sample N verdicts and vote only when the first pass is uncertain, so the cost stays close to one call.
 **Done when:** zero unstable cases at `--runs 5`, with cost per trace reported.
 
 ## 2. Compute: make it cheaper and faster

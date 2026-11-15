@@ -10,20 +10,20 @@
 
 The whole idea rests on one claim, so it was tested before anything else got built. A mock insurance-claims agent with planted bugs produces traces where the true root cause is known exactly. An LLM judge reads each trace, without seeing the bugs or the labels, and names the node it thinks is responsible.
 
-13 real failures and 5 passing controls, each judged 3 times:
+13 real failures and 5 passing controls, each judged 3 times. Latest run (November 2026, judge `claude-sonnet-5` at high effort):
 
 | | Full traces | Notes stripped (the honest number) |
 |---|---|---|
 | Real failures flagged | 39/39 (100%) | 36/39 (92%) |
-| Root-cause node named correctly | 37/39 (95%) | 34/39 (87%) |
+| Root-cause node named correctly | 37/39 (95%) | 36/39 (92%) |
 | Passing controls wrongly flagged | 0/15 (0%) | 0/15 (0%) |
 | Node labels the judge used | 4 of 4 | 4 of 4 |
 
-The judge used all four labels, so the chance baseline really is about 25%.
+The judge used all four labels, so the chance baseline really is about 25%. An earlier run in September scored 87% stripped localization; across the two runs, stripped localization is **87–92%**.
 
-**Where it is weak.** On stripped traces the judge missed a reasoner that silently dropped a condition (the deadline attached to a correctly retrieved document) in 3 of 3 runs, and it wavered on one retriever case. Per node, stripped: intent 9/9, retriever 16/18, reasoner 3/6, responder 6/6. Closing the reasoner gap is the first item on the [roadmap](ROADMAP.md).
+**Where it is weak.** On stripped traces the judge has missed the same case in all six runs so far: a reasoner that silently drops the deadline attached to a correctly retrieved document (T10). It reads the reply as complete and flags nothing. Per node, stripped: intent 9/9, retriever 18/18, reasoner 3/6, responder 6/6. On full traces it blames the reasoner for a responder fault in 2 of 3 runs (T12). Closing the reasoner gap is the first item on the [roadmap](ROADMAP.md).
 
-**Caveats.** These are planted bugs in a small, deterministic, linear agent. That shows node-level diagnosis can work. It does not yet show it works on messy production traces, branching graphs, or other domains. Raw judgments are in [`results/2026-09-12.json`](results/2026-09-12.json). That file predates model logging, so its judge model is not recorded; new runs record it.
+**Caveats.** These are planted bugs in a small, deterministic, linear agent. That shows node-level diagnosis can work. It does not yet show it works on messy production traces, branching graphs, or other domains. Raw judgments are in [`results/`](results/).
 
 ## Quick start
 

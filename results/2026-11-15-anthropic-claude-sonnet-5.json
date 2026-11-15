@@ -1,0 +1,858 @@
+{
+  "full": {
+    "T01": [
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly said they didn't want to file a claim and asked only whether flood damage is covered, but intent misclassified this as a new_claim request and retrieved 'filing' topics instead of flood coverage topics.",
+        "fix": "Have intent detect the coverage-question phrasing ('is flood covered') and route to topics like ['flood_exclusion','deductible'] with intent=coverage_inquiry, not new_claim/filing.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly said they did not want to file a claim and asked only about flood coverage, but intent misclassified this as a new_claim request and retrieved 'filing' topics instead of flood coverage topics.",
+        "fix": "Detect the coverage-question intent (despite negation of filing) and set retrieve_topics to ['flood coverage', 'exclusions'] so POL-FLOOD-001 is retrieved.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly said they did not want to file a claim and asked only about flood coverage, but intent classified this as a new_claim with topic 'filing' instead of recognizing the coverage/exclusion question and retrieving flood-related topics.",
+        "fix": "Detect the coverage-inquiry intent (and negation of claim-filing) and set retrieve_topics to ['flood coverage', 'exclusions'] so POL-FLOOD-001 is retrieved.",
+        "parse_error": false
+      }
+    ],
+    "T02": [
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly asked whether mold damage is covered, but intent classified this as a new_claim filing question and retrieved only 'filing' topics, missing the mold coverage topic entirely.",
+        "fix": "Classify the query as a coverage question and set retrieve_topics to include 'mold' (and related exclusions) so POL-EXCL-2024 is retrieved.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer asked specifically whether mold damage is covered, but intent mislabeled this as a general 'filing a claim' request and dropped the mold coverage topic entirely, sending the wrong topic downstream.",
+        "fix": "Classify the query as a coverage question and include 'mold' (and related water-damage) topics for retrieval instead of only 'filing'.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer asked specifically whether mold damage is covered, but intent misclassified this as a new_claim filing question and set topics to ['filing'] instead of mold/exclusions, sending the whole pipeline down the wrong path.",
+        "fix": "Classify this as a coverage-question intent and retrieve topics like 'mold' and 'general exclusions' (POL-EXCL-2024) rather than 'filing'.",
+        "parse_error": false
+      }
+    ],
+    "T03": [
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly said they are not filing a claim and asked only about the water damage deductible, but intent mislabeled this as a new_claim request with 'filing' topic instead of a deductible lookup.",
+        "fix": "Have intent detect the negated 'not ready to file' clause and classify the query as a deductible question, retrieving the 'deductible' topic (POL-DED-v3) instead of 'filing'.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly said they are not filing a claim and asked only about the water damage deductible, but intent mislabeled this as a new_claim request and retrieved 'filing' topics instead of 'deductible'.",
+        "fix": "Detect the deductible question and negated filing intent, and set retrieve_topics to ['deductible'] instead of ['filing'].",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly said they are not filing a claim and asked only about the water damage deductible, but intent misclassified this as a new_claim/filing request instead of a deductible lookup, derailing all downstream retrieval.",
+        "fix": "Detect the negated 'not ready to file a claim' clause and set retrieve_topics to ['deductible', 'water damage'] rather than ['filing'].",
+        "parse_error": false
+      }
+    ],
+    "T04": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever had both POL-DED-v2 and the current POL-DED-v3 ranked, but selected only the superseded 2024 deductible schedule instead of the effective 2026 one.",
+        "fix": "Filter out superseded documents (or prefer the highest-effective-date version) when multiple versions of the same policy topic are ranked, so POL-DED-v3 is retrieved instead of POL-DED-v2.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever had both POL-DED-v2 and POL-DED-v3 ranked but selected only the superseded 2024 deductible schedule instead of the current POL-DED-v3 effective 2026-01-01.",
+        "fix": "Filter or prioritize retrieval to exclude superseded documents when a current version exists, or at minimum include the current version alongside the old one.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever saw both POL-DED-v2 (superseded) and POL-DED-v3 (current, effective 2026-01-01) in its ranked list but selected only the outdated POL-DED-v2, feeding stale deductible figures downstream.",
+        "fix": "When multiple versions of a document exist, retriever should filter out superseded versions and prefer the one currently in effect as of today's date, returning POL-DED-v3 instead of POL-DED-v2.",
+        "parse_error": false
+      }
+    ],
+    "T05": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever had both POL-DED-v2 and POL-DED-v3 ranked but selected only the superseded 2024 schedule instead of the current effective POL-DED-v3, which should govern as of today's date.",
+        "fix": "When multiple versions of a document exist, filter by effective date and prefer the current, non-superseded policy (POL-DED-v3) over the outdated one.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever had both POL-DED-v2 and POL-DED-v3 ranked but selected only the superseded 2024 deductible schedule instead of the current POL-DED-v3 (effective 2026-01-01), giving the reasoner outdated figures.",
+        "fix": "When multiple versions of a document exist, retriever should filter out superseded documents and return the currently effective one (POL-DED-v3) for 'deductible' queries.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever had both POL-DED-v2 (superseded) and POL-DED-v3 (current, effective 2026-01-01) ranked but truncated to top_k=1 and kept only the outdated v2, causing the reasoner to cite old $750 deductible instead of the current $1,250.",
+        "fix": "When a document is marked superseded_by another in the index, exclude it or prefer the superseding version; increase top_k or filter out superseded policies before truncation.",
+        "parse_error": false
+      }
+    ],
+    "T06": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever ranked both POL-EXCL-2019 (expired) and POL-EXCL-2024 (current) but selected only the expired document, causing downstream reasoning on superseded mold exclusion rules.",
+        "fix": "Filter out expired/superseded documents (or prefer the highest-effective-date active document) before truncating to top_k, so POL-EXCL-2024 is retrieved instead of POL-EXCL-2019.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever had both POL-EXCL-2019 (expired 2023) and POL-EXCL-2024 (current) ranked, but selected only the expired one, feeding the reasoner outdated exclusion language instead of the current rule that mold is covered when caused by a covered water loss.",
+        "fix": "Filter out expired/superseded documents (or prefer the most recent effective version) when selecting top_k results for a topic.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever had both POL-EXCL-2019 (expired 2023-12-31) and POL-EXCL-2024 (current) ranked, but selected only the expired document instead of the current one, leading to an outdated and incorrect answer.",
+        "fix": "Filter out expired/superseded policies before selecting top_k documents, or always prefer the current effective version when multiple versions of the same policy topic are retrieved.",
+        "parse_error": false
+      }
+    ],
+    "T07": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "It ranked and returned the expired 2019 exclusions document over the current 2024 exclusions document, even though both were available, feeding the reasoner outdated law.",
+        "fix": "Filter out expired documents (or prioritize by effective/expiry date) so only POL-EXCL-2024 is retrieved for an active exclusion question.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever had both POL-EXCL-2019 (expired 2023) and POL-EXCL-2024 (current) ranked, but selected only the expired document as top_k=1, feeding the reasoner outdated policy text.",
+        "fix": "Filter out expired/superseded documents (or prefer effective/current ones) before truncating to top_k, so POL-EXCL-2024 is retrieved instead of POL-EXCL-2019.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "Retriever returned only the expired 2019 exclusions document (top_k=1) and discarded the current POL-EXCL-2024 that was also ranked and directly answers the question.",
+        "fix": "Filter out expired/superseded documents (or prefer currently effective ones) before truncating to top_k, so POL-EXCL-2024 is returned instead of POL-EXCL-2019.",
+        "parse_error": false
+      }
+    ],
+    "T08": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever was given both 'deductible' and 'flood' topics and had deductible documents ranked and available, but truncated to top_k=1 and returned only the flood exclusion, leaving the reasoner no way to answer the deductible half of the question.",
+        "fix": "Set retriever top_k (or per-topic retrieval) to return at least one document per requested topic, e.g. include POL-DED-v3 alongside POL-FLOOD-001.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever was given both 'deductible' and 'flood' topics and had POL-DED-v2/v3 ranked right behind POL-FLOOD-001, but it truncated results to top_k=1, so the reasoner never saw deductible data to address the customer's second question.",
+        "fix": "Set top_k (or per-topic retrieval) so at least one document per requested topic is returned, ensuring deductible schedule docs are retrieved alongside the flood exclusion doc.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever was given both 'deductible' and 'flood' topics and even ranked POL-DED-v2/v3 as relevant, but only returned the flood document, causing the deductible part of the question to go unanswered.",
+        "fix": "Increase top_k or ensure at least one document per requested topic is retrieved, so POL-DED-v3 is included alongside POL-FLOOD-001.",
+        "parse_error": false
+      }
+    ],
+    "T09": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever was given both 'deductible' and 'filing' topics and its own ranked list included POL-DED-v3, but it only returned POL-CLAIM-FILE, dropping the deductible document entirely.",
+        "fix": "Set top_k so that at least one document per requested topic is retrieved (e.g., include POL-DED-v3 alongside POL-CLAIM-FILE) instead of truncating to a single result.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever had POL-DED-v3 (and v2) ranked and available for the 'deductible' topic but returned only the top-1 result, dropping deductible documents entirely even though the question required both topics.",
+        "fix": "Retrieve enough documents to cover every topic identified by intent (e.g., top-k per topic) so both 'deductible' and 'filing' topics return matching policy docs.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever was given both 'deductible' and 'filing' topics and its own ranking even showed POL-DED-v3 as relevant, yet it returned only POL-CLAIM-FILE (top_k=1), dropping the deductible document entirely.",
+        "fix": "Increase top_k or retrieve per-topic so at least one document per requested topic (e.g., POL-DED-v3 for 'deductible') is returned.",
+        "parse_error": false
+      }
+    ],
+    "T10": [
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The reasoner dropped the conditional rule that a claim without photographs is held for inspection before an adjuster is assigned, producing an incomplete answer despite having that information in the retrieved document.",
+        "fix": "Include all conditional clauses from POL-CLAIM-FILE, noting that missing photographs delay adjuster assignment pending inspection.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The reasoner had the full POL-CLAIM-FILE text, which includes the conditional rule that claims without photographs are held for inspection before adjuster assignment, but it omitted that caveat and still claimed high confidence.",
+        "fix": "Include the condition about photo submission and the inspection hold in the reasoner's answer, and lower confidence if any policy detail is dropped.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The reasoner had the full POL-CLAIM-FILE text including the rule that claims without photographs are held for inspection before an adjuster is assigned, but it dropped that condition from its answer.",
+        "fix": "Include all conditional details from the retrieved document, specifically that a claim without photographs is held for inspection before an adjuster is assigned.",
+        "parse_error": false
+      }
+    ],
+    "T11": [
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The retrieved document explicitly states that an appeal received after the 60-day window is not reviewed and the original decision stands, but the reasoner omitted this directly relevant fact while answering a question specifically about the late-appeal scenario.",
+        "fix": "Include the policy's explicit statement that late appeals are not reviewed and the original denial stands, since that directly answers the customer's question.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The reasoner had the retrieved POL-APPEAL document, which explicitly states that an appeal after the 60-day window is not reviewed and the original decision stands, but it omitted that key fact which directly answers the customer's question.",
+        "fix": "Reasoner should include the specific outcome for late appeals ('not reviewed, original decision stands') since that is exactly what the customer asked about.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The retrieved document explicitly states that an appeal after the 60-day window is not reviewed and the original decision stands, but the reasoner omitted this directly relevant clause while marking confidence high.",
+        "fix": "Reasoner should include the late-appeal consequence from POL-APPEAL ('not reviewed, original decision stands') since it directly answers the customer's question.",
+        "parse_error": false
+      }
+    ],
+    "T12": [
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The reasoner was given the full POL-FLOOD-001 text (which states the exclusion applies to the whole standard policy and that flood coverage requires a separate endorsement) but produced an answer that neither addresses the customer's explicit 'detached garage' comparison nor mentions the endorsement option, despite having all the needed content.",
+        "fix": "Have the reasoner state explicitly that the flood exclusion applies uniformly to the entire property (so a detached garage is not treated differently) and include the endorsement clause so the customer knows how to obtain coverage, raising confidence once the answer is complete.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner flagged low confidence (document doesn't address detached structures), but the responder delivered the answer unqualified, stripping the needed caveat.",
+        "fix": "When confidence is low, responder should add a hedge noting the policy doesn't specifically address detached garages/structures and advise the customer to confirm with an adjuster.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The reasoner had POL-FLOOD-001's full text, including the endorsement exception, but dropped that condition and failed to address whether a detached garage is treated differently, producing an incomplete answer despite having what it needed.",
+        "fix": "Reasoner should state that flood exclusion applies uniformly to all structures including detached garages, and include the endorsement exception, flagging confidence as moderate once the full document content is used.",
+        "parse_error": false
+      }
+    ],
+    "T13": [
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner correctly flagged low confidence because the policy index has no information on arbitration after a second denial, but the responder dropped this qualification and presented an unrelated answer as if it fully addressed the question.",
+        "fix": "Responder should hedge and state that the policy index does not address arbitration options after a second denied appeal, rather than silently reciting the first-appeal process.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner flagged low confidence because the policy index has no information on arbitration after a second appeal denial, but the responder delivered the answer unhedged and didn't address the arbitration question at all.",
+        "fix": "Responder should relay the reasoner's low confidence by telling the customer the policy index does not address arbitration options and recommending they contact customer service for that specific question, rather than silently repeating only the general appeal policy.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner flagged low confidence because the policy index has no information on arbitration after a second denial, but the responder delivered the answer unhedged, failing to convey that the customer's actual question about arbitration is unanswered by policy.",
+        "fix": "When confidence is low, the responder should add a qualification noting the policy index does not address arbitration options and direct the customer to ask claims support directly, rather than silently presenting unrelated appeal facts as if they answered the question.",
+        "parse_error": false
+      }
+    ],
+    "C01": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The customer asked specifically about the 2026 plan year, and POL-DED-v3 is the correct, current, effective document for that year, so the retrieved doc, reasoning, and unhedged reply are all accurate.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "POL-DED-v3 is the correct current document for the 2026 plan year and the answer accurately reflects it with appropriate high confidence.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The customer asked specifically about the 2026 plan year, and POL-DED-v3 (effective 2026-01-01) correctly supplies the $1,000/$1,250 deductibles, which is the best answer the policy index supports.",
+        "fix": null,
+        "parse_error": false
+      }
+    ],
+    "C02": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The retrieved policy directly answers the question with the correct 60-day window, and the reasoner/responder accurately conveyed this with appropriate high confidence.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The answer correctly states the 60-day appeal window and supporting requirements from POL-APPEAL, which fully answers the customer's question.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The answer correctly states the 60-day appeal window from POL-APPEAL, which fully answers the customer's question.",
+        "fix": null,
+        "parse_error": false
+      }
+    ],
+    "C03": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The query was correctly understood, the right document was retrieved, and the answer accurately and completely reflects POL-STATUS with appropriate high confidence.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The pipeline correctly identified the simple status query, retrieved the right doc, and gave an accurate, fully supported answer with appropriate high confidence and no hedging needed.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The query was correctly understood, the right document was retrieved, and the answer accurately and completely reflects POL-STATUS without need for hedging.",
+        "fix": null,
+        "parse_error": false
+      }
+    ],
+    "C04": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The retrieved POL-EXCL-2024 document directly answers the question, and the reasoner correctly stated that tenant occupancy is covered as of the 2024 plan year, which the responder passed through accurately.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The retriever correctly surfaced POL-EXCL-2024 and the reasoner/responder accurately reported that tenant occupancy is covered under the 2024 plan year, which fully answers the customer's question even though the mold sentence is extraneous.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The customer asked only about tenant occupancy, and the retrieved POL-EXCL-2024 document correctly supports that it is covered as of 2024, so the final answer, despite extra mold detail, is factually correct and complete for the question asked.",
+        "fix": null,
+        "parse_error": false
+      }
+    ],
+    "C05": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "No policy document addresses earthquake coverage, so the pipeline's conclusion that no current policy language covers it is accurate and the best possible answer given the index.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The policy index contains no earthquake-related document, so even if intent had extracted an 'earthquake' topic and retriever had searched for it, no relevant policy would have been found, making the final 'no current policy language' answer correct regardless.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "No policy document addresses earthquake coverage, so even with correct topic extraction the retriever would find nothing and the final 'no coverage information found' answer is already the best the policy index supports.",
+        "fix": null,
+        "parse_error": false
+      }
+    ]
+  },
+  "stripped": {
+    "T01": [
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly asked about flood coverage, not filing a claim, so intent misclassified the request and sent 'filing' as the topic instead of 'flood coverage/exclusion'.",
+        "fix": "Classify the intent as a coverage question about flood damage and retrieve topics like 'flood' or 'exclusions', not 'filing'.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly asked whether flood damage is covered (not how to file a claim), but intent misclassified the request as 'new_claim' with topic 'filing', sending the pipeline down the wrong path entirely.",
+        "fix": "Classify this query as a coverage question with topic 'flood exclusion', so the retriever pulls POL-FLOOD-001 instead of POL-CLAIM-FILE.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly asked only whether flood damage is covered, not how to file a claim, but intent mislabeled this as a new_claim/filing request instead of a coverage question about flood topics.",
+        "fix": "Classify the query as a coverage inquiry with topic 'flood exclusion' so the retriever pulls POL-FLOOD-001 instead of POL-CLAIM-FILE.",
+        "parse_error": false
+      }
+    ],
+    "T02": [
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer asked specifically whether mold damage is covered, but intent classified this as a generic 'new_claim/filing' request and dropped the mold-coverage topic entirely, causing the wrong document to be retrieved.",
+        "fix": "Have intent classify this as a coverage-inquiry about mold damage (topics: ['mold_coverage']) so the retriever pulls POL-EXCL-2024 instead of POL-CLAIM-FILE.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer asked specifically whether mold damage is covered, but intent classified this as a generic 'new_claim' filing question with topic 'filing' instead of recognizing the mold coverage topic, causing the wrong documents to be retrieved.",
+        "fix": "Classify the query's topic as mold coverage (and route to POL-EXCL-2024) rather than generic claim filing.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly asked whether mold damage is covered, but intent classified this as a new_claim filing question and set topics to only 'filing', causing the wrong documents to be retrieved entirely.",
+        "fix": "Intent should classify this as a coverage question and extract topics like 'mold' and 'exclusions' so the retriever pulls POL-EXCL-2024.",
+        "parse_error": false
+      }
+    ],
+    "T03": [
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly asked about their water damage deductible (not filing), but intent misclassified the request as a new_claim/filing topic, causing retrieval of the wrong document (POL-CLAIM-FILE instead of the deductible schedule).",
+        "fix": "Have intent parse multi-part/clarifying phrasing correctly and set topics to ['deductible','water damage'] so the retriever fetches POL-DED-v3.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly asked about their water damage deductible (not filing), but intent mislabeled the query as 'new_claim' with topic 'filing', causing retriever to pull the wrong policy document entirely.",
+        "fix": "Classify the query's topic as 'deductible/water damage' and route retrieval to POL-DED-v3, not POL-CLAIM-FILE.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "intent",
+        "reason": "The customer explicitly asked about their water damage deductible (not filing), but intent misclassified the request as a new_claim/filing topic, causing the wrong documents to be retrieved entirely.",
+        "fix": "Classify the query topic as 'deductible' (water damage) and route to the deductible schedule, e.g. POL-DED-v3, instead of claim-filing procedures.",
+        "parse_error": false
+      }
+    ],
+    "T04": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever selected the superseded POL-DED-v2 (2024 plan year) instead of the currently effective POL-DED-v3 (2026 plan year), giving the reasoner outdated deductible figures.",
+        "fix": "Filter retrieval to the policy document with the latest effective date that is not superseded, i.e. return POL-DED-v3 for 'deductible' queries as of 2026-09-12.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever selected the superseded POL-DED-v2 schedule instead of the currently effective POL-DED-v3, which is the correct deductible document as of today's date.",
+        "fix": "Filter retrieval to exclude superseded documents and prefer the version whose effective date is current (POL-DED-v3) when multiple versions of a policy exist.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever pulled the superseded POL-DED-v2 deductible schedule instead of the currently effective POL-DED-v3 (effective 2026-01-01), leading to an outdated $500 figure instead of the correct $1,000.",
+        "fix": "Filter retrieval by effective date/supersession status so only the current deductible schedule (POL-DED-v3) is returned for the 'deductible' topic.",
+        "parse_error": false
+      }
+    ],
+    "T05": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever selected the superseded POL-DED-v2 deductible schedule instead of the current POL-DED-v3 (effective 2026-01-01), leading to an outdated dollar figure.",
+        "fix": "Retriever should filter out superseded documents and select the currently effective deductible schedule (POL-DED-v3) for queries dated after 2026-01-01.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "Retriever selected the superseded POL-DED-v2 instead of the current POL-DED-v3, which is the effective deductible schedule for 2026 and gives wind/hail deductible as $1,250 not $750.",
+        "fix": "Filter retrieval to currently effective documents (exclude superseded_by versions) so POL-DED-v3 is returned instead of POL-DED-v2.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever pulled the superseded POL-DED-v2 instead of the current POL-DED-v3, giving wind and hail deductible as $750 instead of the correct $1,250 for the 2026 plan year.",
+        "fix": "Filter deductible schedule lookups to the currently effective version (POL-DED-v3) and exclude documents marked superseded_by, or select based on effective date relative to today.",
+        "parse_error": false
+      }
+    ],
+    "T06": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever pulled only the expired 2019 exclusions document instead of the current POL-EXCL-2024, which actually governs mold coverage today.",
+        "fix": "Filter retrieval to currently effective policy documents (or prefer the superseding document) when multiple versions of an exclusions policy exist.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever returned the expired 2019 exclusions document instead of the current POL-EXCL-2024, which is the only effective policy on mold exclusions and states mold is covered when resulting from a covered water loss.",
+        "fix": "Filter retrieval to currently effective documents (exclude superseded/expired versions) and return POL-EXCL-2024 for exclusion queries.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever pulled only the expired 2019 exclusions document instead of the current POL-EXCL-2024, which is the correct active policy on mold coverage.",
+        "fix": "Filter retrieval to currently effective documents (exclude superseded/expired ones like POL-EXCL-2019) and return POL-EXCL-2024 for exclusion queries.",
+        "parse_error": false
+      }
+    ],
+    "T07": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever returned only the expired 2019 exclusions document (POL-EXCL-2019) instead of the current POL-EXCL-2024, which reverses the tenant-occupancy exclusion.",
+        "fix": "Filter retrieval by effective/expiry dates so only currently active policy documents (POL-EXCL-2024) are returned for 'exclusion' topics.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever pulled the expired 2019 exclusion policy instead of the current POL-EXCL-2024, which reverses the tenant-occupancy exclusion.",
+        "fix": "Filter retrieval to documents that are currently effective (not expired) and prefer the superseding version when multiple versions exist.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever pulled the expired 2019 exclusion policy (POL-EXCL-2019) instead of the current POL-EXCL-2024, which directly reverses the tenant-occupancy exclusion.",
+        "fix": "Filter retrieval to currently effective documents only, selecting POL-EXCL-2024 over the superseded/expired POL-EXCL-2019 for the 'exclusion' topic.",
+        "parse_error": false
+      }
+    ],
+    "T08": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever was given both 'deductible' and 'flood' topics but only fetched the flood exclusion document, leaving the deductible question entirely unanswered even though it is answerable (no deductible applies absent a flood endorsement).",
+        "fix": "Have the retriever pull the deductible schedule (POL-DED-v3) in addition to POL-FLOOD-001 so the reasoner can explain that since flood is excluded, no deductible applies unless a flood endorsement is purchased.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The intent node correctly flagged both 'deductible' and 'flood' topics, but the retriever only pulled POL-FLOOD-001 and ignored the deductible schedule, leaving the reasoner unable to address the customer's deductible question at all.",
+        "fix": "Retriever should fetch documents for every topic it was given, e.g. also retrieve POL-DED-v3 for the 'deductible' topic so the reasoner can explain that since flood is excluded, no deductible applies unless a flood endorsement is purchased.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "Intent correctly flagged both 'deductible' and 'flood' topics, but the retriever only returned the flood exclusion document and never fetched a deductible schedule, leaving the customer's second question unanswered.",
+        "fix": "Have the retriever fetch documents for every topic intent identifies, e.g., also pull POL-DED-v3 for the deductible topic even when a flood exclusion applies.",
+        "parse_error": false
+      }
+    ],
+    "T09": [
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "Intent correctly identified both 'deductible' and 'filing' topics, but the retriever only returned POL-CLAIM-FILE and omitted the deductible schedule (POL-DED-v3), leaving the deductible question unanswered.",
+        "fix": "Retrieve documents for every topic identified by intent, including the current deductible schedule POL-DED-v3 for the 'deductible' topic.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The intent correctly identified both 'deductible' and 'filing' topics, but the retriever only fetched POL-CLAIM-FILE and never pulled the deductible schedule (POL-DED-v3), leaving the deductible question unanswered.",
+        "fix": "Retrieve documents for every topic identified by intent, including POL-DED-v3 for 'deductible', not just POL-CLAIM-FILE.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "retriever",
+        "reason": "The retriever only pulled POL-CLAIM-FILE and ignored the deductible topic, so no deductible schedule document (POL-DED-v3) was retrieved despite intent correctly flagging both 'deductible' and 'filing' topics.",
+        "fix": "Retrieve documents for every topic identified by intent, including the current deductible schedule POL-DED-v3, not just the filing document.",
+        "parse_error": false
+      }
+    ],
+    "T10": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The query is a straightforward filing question and all nodes correctly identified intent, retrieved the right document, formed an accurate answer with appropriate high confidence, and delivered it unhedged since no qualification was needed.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The intent, retrieval, reasoning, and response all correctly address the simple 'how do I file a claim' question using the relevant policy document.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The intent, retrieval, reasoning, and response all correctly address the simple filing question using the relevant policy document, with no missing details or unwarranted confidence.",
+        "fix": null,
+        "parse_error": false
+      }
+    ],
+    "T11": [
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The customer specifically asked what happens if the appeal is filed after the deadline, but the reasoner omitted the directly relevant policy sentence that an appeal received after 60 days is not reviewed and the original decision stands, despite that fact being in the retrieved document.",
+        "fix": "Have the reasoner extract and include the late-appeal consequence from POL-APPEAL ('not reviewed, original decision stands') since it directly answers the question asked.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The reasoner was given POL-APPEAL, which explicitly states that an appeal received after the 60-day window is not reviewed and the original decision stands, but it omitted this directly relevant fact from its answer despite the customer specifically asking about a late appeal.",
+        "fix": "Reasoner should include the policy's explicit rule that late appeals are not reviewed and the original denial stands.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "reasoner",
+        "reason": "The reasoner had the POL-APPEAL document, which explicitly states that an appeal received after the 60-day window is not reviewed and the original decision stands, but it omitted this directly relevant fact and answered as if the question were about the normal appeal process.",
+        "fix": "Reasoner should include the specific late-appeal consequence from POL-APPEAL: appeals after 60 days are not reviewed and the original decision stands.",
+        "parse_error": false
+      }
+    ],
+    "T12": [
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner flagged low confidence (since the policy text doesn't explicitly address detached structures like garages), but the responder stripped the hedge and delivered the exclusion as an unqualified blanket statement, never acknowledging the uncertainty about separate treatment for detached structures.",
+        "fix": "Responder should carry the reasoner's low-confidence flag into the reply, e.g. noting that the policy text doesn't distinguish detached garages from the main dwelling, so the same flood exclusion likely applies but should be confirmed with the carrier.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner flagged low confidence (since no document addresses detached garages specifically), but the responder delivered the answer unhedged, omitting the needed qualification.",
+        "fix": "Responder should add a hedge noting the policy index doesn't specifically address detached structures, advising the customer to confirm with their agent or endorsement details.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner flagged low confidence (since the retrieved document doesn't explicitly address detached structures), but the responder delivered the answer as a flat, unqualified statement without noting that treatment of detached garages specifically wasn't confirmed.",
+        "fix": "Responder should hedge low-confidence reasoner outputs, e.g., 'Flood damage is excluded under the standard policy; we don't have confirmation of a different rule for detached structures like garages, so please confirm with your adjuster.'",
+        "parse_error": false
+      }
+    ],
+    "T13": [
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner flagged low confidence because the policy index has no information on arbitration after a second appeal rejection, but the responder delivered the answer as unqualified fact without noting this gap or that the customer's specific question wasn't addressed.",
+        "fix": "Responder should hedge the reply to reflect the reasoner's low confidence, explicitly stating that the policy index does not address arbitration options after a second denied appeal and directing the customer to contact support for clarification.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner flagged low confidence because the policy index has no information on arbitration after a second appeal denial, but the responder delivered the answer unhedged and never addressed the customer's actual question about arbitration.",
+        "fix": "Responder should carry the reasoner's low confidence into the reply, explicitly stating the policy index contains no arbitration provision and directing the customer to confirm options via the denial letter or customer service.",
+        "parse_error": false
+      },
+      {
+        "failed": true,
+        "node": "responder",
+        "reason": "The reasoner flagged low confidence because the policy index has no information on arbitration after a second rejected appeal, but the responder delivered the answer unhedged, failing to convey that the customer's actual question about arbitration was unanswered.",
+        "fix": "Responder should add a hedge noting the policy index does not address arbitration or a second appeal, and advise the customer to contact claims support for that specific question.",
+        "parse_error": false
+      }
+    ],
+    "C01": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The retriever correctly selected POL-DED-v3, the current 2026 plan year deductible schedule, and the reasoner/responder accurately conveyed its contents with appropriate high confidence.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The retriever correctly selected the current 2026 deductible schedule (POL-DED-v3), and the reasoner/responder accurately conveyed its contents with appropriate high confidence.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The customer asked specifically about the 2026 plan year, and the pipeline correctly retrieved and reported POL-DED-v3, the current effective deductible schedule for 2026.",
+        "fix": null,
+        "parse_error": false
+      }
+    ],
+    "C02": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The pipeline correctly identified the appeal topic, retrieved the relevant policy, and produced an accurate, directly responsive answer stating the 60-day window.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The pipeline correctly identified the appeal topic, retrieved the relevant policy, and produced an accurate, fully supported answer to the 60-day appeal window question.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The pipeline correctly identified the appeal topic, retrieved the relevant policy, and accurately answered the 60-day appeal window with appropriate confidence and no hedging needed.",
+        "fix": null,
+        "parse_error": false
+      }
+    ],
+    "C03": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The pipeline correctly identified the intent, retrieved the right policy, and produced an accurate, directly responsive answer with appropriate confidence and no hedging needed.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "All nodes correctly identified the intent, retrieved the right document, and produced an accurate, appropriately confident answer to the simple status question.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "All nodes correctly handled the simple status query and the final answer accurately reflects POL-STATUS with no unwarranted hedging needed.",
+        "fix": null,
+        "parse_error": false
+      }
+    ],
+    "C04": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The retrieved POL-EXCL-2024 document directly answers the question and the reasoner/responder correctly conveyed that tenant occupancy is covered as of 2024, matching the policy text exactly.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The retrieved document POL-EXCL-2024 directly confirms tenant occupancy is covered as of the 2024 plan year, and the reasoner/responder accurately conveyed this with appropriate confidence.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The retrieved POL-EXCL-2024 document directly answers the question, and the reasoner's statement that tenant occupancy is covered as of 2024 is accurate, even though it included extra unrequested mold info.",
+        "fix": null,
+        "parse_error": false
+      }
+    ],
+    "C05": [
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The policy index contains no earthquake-related document, so correctly identifying there's no applicable coverage language is the best possible answer regardless of topic tagging.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The policy index contains no information about earthquake coverage at all, so even with correct topic extraction and retrieval, no relevant documents would have been found, making the final 'no information found' answer accurate and appropriate.",
+        "fix": null,
+        "parse_error": false
+      },
+      {
+        "failed": false,
+        "node": null,
+        "reason": "The policy index contains no document addressing earthquake coverage, so 'no current policy language covers this' is the correct and best available answer regardless of how topics were extracted or retrieved.",
+        "fix": null,
+        "parse_error": false
+      }
+    ]
+  },
+  "meta": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-5",
+    "effort": "high",
+    "base_url": null,
+    "runs": 3,
+    "date": "2026-11-15",
+    "summary": {
+      "full": {
+        "detection": 1.0,
+        "localization": 0.9487179487179487,
+        "false_alarm": 0.0,
+        "labels_used": 4,
+        "unusable": 0.0
+      },
+      "stripped": {
+        "detection": 0.9230769230769231,
+        "localization": 0.9230769230769231,
+        "false_alarm": 0.0,
+        "labels_used": 4,
+        "unusable": 0.0
+      }
+    }
+  }
+}

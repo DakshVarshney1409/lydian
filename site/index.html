@@ -629,7 +629,7 @@ nav.tight{background:#070B12EE}
       </div>
       <div class="hero-foot hs">
         <span><i></i>Open source &middot; MIT</span>
-        <span><i></i>87% localization on stripped traces</span>
+        <span><i></i>92% localization on stripped traces</span>
         <span><i></i>Runs locally with your own API key</span>
       </div>
     </div>
@@ -1030,19 +1030,19 @@ nav.tight{background:#070B12EE}
   <div class="sec-head r">
     <p class="eyebrow">Demo</p>
     <h2>What it produced on an agent we broke on purpose.</h2>
-    <p>Faults planted at known locations, so the right answer is provable rather than argued. 108 blind runs, with the diagnostic annotations stripped out to approximate a real pipeline.</p>
+    <p>Faults planted at known locations, so the right answer is provable rather than argued. Judged blind, with the diagnostic annotations stripped out to approximate a real pipeline. Latest run, November 2026; an earlier run scored 87% localization.</p>
   </div>
 
   <div class="nums r">
-    <div class="num"><p class="v good" data-count="87" data-suffix="%">87%</p><p class="k">Localization</p><p class="d">named the correct node</p></div>
+    <div class="num"><p class="v good" data-count="92" data-suffix="%">92%</p><p class="k">Localization</p><p class="d">named the correct node</p></div>
     <div class="num"><p class="v good" data-count="92" data-suffix="%">92%</p><p class="k">Detection</p><p class="d">real failures flagged</p></div>
     <div class="num"><p class="v good" data-count="0" data-suffix="%">0%</p><p class="k">False alarm</p><p class="d">correct traces wrongly flagged</p></div>
-    <div class="num"><p class="v good">17/18</p><p class="k">Stable</p><p class="d">same verdict every run</p></div>
+    <div class="num"><p class="v good">18/18</p><p class="k">Stable</p><p class="d">same verdict every run</p></div>
   </div>
 
   <div class="chart-wrap r">
     <div class="chart-h">Accuracy by node <span>share of judgments naming the correct component</span></div>
-    <svg viewBox="0 0 660 240" role="img" aria-label="Localization accuracy by node: intent 100 percent, retriever 89 percent, reasoner 50 percent, responder 100 percent, against a 25 percent chance baseline.">
+    <svg viewBox="0 0 660 240" role="img" aria-label="Localization accuracy by node: intent 100 percent, retriever 100 percent, reasoner 50 percent, responder 100 percent, against a 25 percent chance baseline.">
       <g class="grid">
         <line x1="118" y1="30" x2="118" y2="200"/><line x1="238" y1="30" x2="238" y2="200"/>
         <line x1="358" y1="30" x2="358" y2="200"/><line x1="478" y1="30" x2="478" y2="200"/>
@@ -1056,8 +1056,8 @@ nav.tight{background:#070B12EE}
       <text x="608" y="58" class="c-val">100%</text>
 
       <text x="104" y="104" text-anchor="end" class="c-lab">retriever</text>
-      <rect x="118" y="90" width="427" height="20" rx="3" class="bar"/>
-      <text x="555" y="104" class="c-val">89%</text>
+      <rect x="118" y="90" width="480" height="20" rx="3" class="bar"/>
+      <text x="608" y="104" class="c-val">100%</text>
 
       <text x="104" y="150" text-anchor="end" class="c-lab">reasoner</text>
       <rect x="118" y="136" width="240" height="20" rx="3" class="bar"/>
@@ -1078,17 +1078,16 @@ nav.tight{background:#070B12EE}
 
   <div class="chart-wrap r">
     <div class="chart-h">Where all 39 failures landed <span>every real failure in the set, one bar</span></div>
-    <svg viewBox="0 0 660 118" role="img" aria-label="Of 39 real failures, 34 were localized to the correct node, 2 named the wrong node, and 3 were not flagged at all.">
-      <rect x="20"    y="24" width="538" height="34" rx="3" class="seg s1"/>
-      <rect x="560.5" y="24" width="29.8" height="34" rx="3" class="seg s2"/>
+    <svg viewBox="0 0 660 118" role="img" aria-label="Of 39 real failures, 36 were localized to the correct node, none named the wrong node, and 3 were not flagged at all.">
+      <rect x="20"    y="24" width="569.8" height="34" rx="3" class="seg s1"/>
       <rect x="592.3" y="24" width="47.7" height="34" rx="3" class="seg s3"/>
-      <text x="34" y="46" class="c-inbar">34 localized to the correct node</text>
+      <text x="34" y="46" class="c-inbar">36 localized to the correct node</text>
 
       <g class="legend-g">
         <rect x="20" y="78" width="11" height="11" rx="2" class="seg s1"/>
-        <text x="38" y="88" class="c-lg">correct node &mdash; 34</text>
+        <text x="38" y="88" class="c-lg">correct node &mdash; 36</text>
         <rect x="212" y="78" width="11" height="11" rx="2" class="seg s2"/>
-        <text x="230" y="88" class="c-lg">wrong node &mdash; 2</text>
+        <text x="230" y="88" class="c-lg">wrong node &mdash; 0</text>
         <rect x="390" y="78" width="11" height="11" rx="2" class="seg s3"/>
         <text x="408" y="88" class="c-lg">not flagged &mdash; 3</text>
       </g>
